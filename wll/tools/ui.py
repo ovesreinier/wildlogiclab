@@ -1,3 +1,4 @@
+import base64
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -13,8 +14,8 @@ import streamlit as st
 # Configuration
 # -----------------------------
 DATA_PATH = Path("database/alberta_wmu_survey_database_2025.json")
-APP_TITLE = "Alberta WMU Hunting Effort vs Reward Dashboard"
-APP_SUBTITLE = "Interactive WMU explorer with species tabs, scoring, and parallel-coordinates analysis"
+APP_TITLE = "Alberta WMUs Animal Surveys"
+APP_SUBTITLE = "Alberta Public Surveys - 2025"
 LOGO_PATH = "docs/assets/logo1-r.png"
 # Basic weighting formula for a global success score.
 # Positive metrics push success up; effort pushes it down.
@@ -242,6 +243,81 @@ def build_parallel_species_table(df: pd.DataFrame, metric: str) -> pd.DataFrame:
     return pivot
 
 
+def _parcoords_dim_to_dict(dim) -> Dict:
+    if hasattr(dim, "to_plotly_json"):
+        return dim.to_plotly_json()
+    return dict(dim)
+
+
+def parallel_coordinates_with_wmu_axis(
+    pvt: pd.DataFrame, metric_cols: List[str], title: str
+) -> go.Figure:
+    """Parallel coordinates with a left WMU axis (readable ticks) and room for labels."""
+    plot_df = pvt.reset_index(drop=True).copy()
+    n = len(plot_df)
+    plot_df["_par_wmu_idx"] = np.arange(n, dtype=float)
+    wmu_labels = plot_df["wmu_id"].astype(str).tolist()
+
+    color_series = plot_df[metric_cols].mean(axis=1, skipna=True)
+    dim_cols = ["_par_wmu_idx"] + metric_cols
+    labels = {"_par_wmu_idx": "WMU", **{c: c for c in metric_cols}}
+
+    fig = px.parallel_coordinates(
+        plot_df,
+        dimensions=dim_cols,
+        color=color_series,
+        title=title,
+        labels=labels,
+    )
+
+    max_ticks = 32
+    if n <= max_ticks:
+        tickvals = list(range(n))
+        ticktext = wmu_labels
+    else:
+        step = max(1, (n + max_ticks - 1) // max_ticks)
+        tickvals = list(range(0, n, step))
+        if tickvals[-1] != n - 1:
+            tickvals.append(n - 1)
+        ticktext = [wmu_labels[i] for i in tickvals]
+
+    dims = fig.data[0].dimensions
+    first = _parcoords_dim_to_dict(dims[0])
+    first.update(
+        {
+            "label": "WMU",
+            "tickvals": tickvals,
+            "ticktext": ticktext,
+            "range": [-0.5, float(n) - 0.5] if n > 1 else [-0.5, 0.5],
+        }
+    )
+    rest = [_parcoords_dim_to_dict(dims[i]) for i in range(1, len(dims))]
+    fig.update_traces(dimensions=[first] + rest)
+
+    fig.update_traces(
+        # Keep lines dark, but avoid bright tones that create a halo-like effect.
+        line=dict(
+            colorscale=[
+                [0.0, "#1f1f1f"],
+                [0.5, "#2a2a2a"],
+                [1.0, "#353535"],
+            ],
+            cmin=float(color_series.min()) if color_series.notna().any() else 0.0,
+            cmax=float(color_series.max()) if color_series.notna().any() else 1.0,
+            showscale=False,
+        ),
+        # Use black text for all axis labels/ticks (regular weight).
+        labelfont=dict(size=14, color="#000000"),
+        tickfont=dict(size=12, color="#000000"),
+    )
+    fig.update_layout(
+        margin=dict(l=150, r=100, t=88, b=88, pad=6),
+        font=dict(size=11),
+        height=max(480, 340 + 14 * len(dim_cols)),
+    )
+    return fig
+
+
 def metric_card(label: str, value, help_text: Optional[str] = None, fmt: str = "{:.2f}"):
     if value is None or (isinstance(value, float) and np.isnan(value)):
         display = "N/A"
@@ -252,32 +328,153 @@ def metric_card(label: str, value, help_text: Optional[str] = None, fmt: str = "
     st.metric(label, display, help=help_text)
 
 
+def format_detail_value(value) -> str:
+    """Normalize mixed metric types for display-only tables."""
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return "N/A"
+    if isinstance(value, (float, np.floating)):
+        return f"{value:.2f}"
+    if isinstance(value, (int, np.integer)):
+        return str(value)
+    return str(value)
+
+
+def _html_escape(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _logo_mime_and_b64(logo_path: str) -> Optional[Tuple[str, str]]:
+    p = Path(logo_path)
+    if not p.exists():
+        return None
+    ext = p.suffix.lower()
+    mime = (
+        "image/png"
+        if ext == ".png"
+        else "image/jpeg"
+        if ext in (".jpg", ".jpeg")
+        else "image/png"
+    )
+    b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+    return (mime, b64)
+
+
+def render_app_header(logo_path: str, title: str, subtitle: str) -> None:
+    """Logo and title on one row with vertical alignment and a simple hero treatment."""
+    parts = _logo_mime_and_b64(logo_path)
+    if not parts:
+        st.title(title)
+        st.caption(subtitle)
+        return
+
+    mime, b64 = parts
+    title_esc = _html_escape(title)
+    sub_esc = _html_escape(subtitle)
+
+    st.markdown(
+        f"""
+<style>
+.wll-hero {{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0 1.15rem;
+  margin-bottom: 0.35rem;
+}}
+.wll-hero__logo {{
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}}
+.wll-hero__logo img {{
+  width: clamp(56px, 9vw, 88px);
+  height: auto;
+  display: block;
+  border-radius: 10px;
+}}
+.wll-hero__text {{
+  min-width: 0;
+  flex: 1;
+}}
+.wll-hero__text h1 {{
+  font-size: clamp(1.55rem, 3.2vw, 2.1rem);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}}
+.wll-hero__text p {{
+  margin: 0.38rem 0 0;
+  color: rgba(49, 51, 63, 0.68);
+  font-size: 1.02rem;
+  line-height: 1.35;
+}}
+</style>
+<div class="wll-hero">
+  <div class="wll-hero__logo">
+    <img src="data:{mime};base64,{b64}" alt="" />
+  </div>
+  <div class="wll-hero__text">
+    <h1>{title_esc}</h1>
+    <p>{sub_esc}</p>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_brand(logo_path: str, caption: str) -> None:
+    """Centered logo and caption at the top of the sidebar."""
+    parts = _logo_mime_and_b64(logo_path)
+    if parts:
+        mime, b64 = parts
+        st.markdown(
+            f"""
+<style>
+.wll-sidebar-brand {{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.2rem 0 0.65rem;
+}}
+.wll-sidebar-brand img {{
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}}
+.wll-sidebar-brand__cap {{
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(49, 51, 63, 0.68);
+}}
+</style>
+<div class="wll-sidebar-brand">
+  <img src="data:{mime};base64,{b64}" alt="" />
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.caption(caption)
+
+    st.divider()
+
+
 # -----------------------------
 # Streamlit App
 # -----------------------------
 
 st.set_page_config(page_title=APP_TITLE, layout="wide",
                    page_icon=LOGO_PATH)
-# Display logo at the top
-if Path(LOGO_PATH).exists():
-    st.image(LOGO_PATH, width=200)
-st.title(APP_TITLE)
-st.caption(APP_SUBTITLE)
+render_app_header(LOGO_PATH, APP_TITLE, APP_SUBTITLE)
 
-st.markdown(
-    """
-This dashboard uses the uploaded Alberta WMU 2025 survey JSON to visualize species-level density,
-proxy effort, abundance, and a simple combined success-vs-effort score.
-
-**Global score formula used in this first version**
-- Positive factors: density, abundance estimate, observed count, trend, male ratio, juvenile ratio
-- Negative factor: effort proxy in km per expected animal
-- `global_success_score` is scaled to 0-100 and rewards stronger wildlife indicators while penalizing effort.
-- `global_effort_score` is scaled to 0-100, where higher means harder / more effort.
-
-This is a first-pass analytical score, not an official harvest success model.
-"""
-)
 
 if not DATA_PATH.exists():
     st.error(
@@ -291,7 +488,8 @@ wmu_summary = get_wmu_summary(df)
 all_wmus = sorted(df["wmu_id"].unique(), key=lambda x: int(x))
 
 with st.sidebar:
-    st.header("Controls")
+    render_sidebar_brand(LOGO_PATH, APP_SUBTITLE)
+
     selected_wmu = st.selectbox("Select WMU", all_wmus, index=all_wmus.index(
         "306") if "306" in all_wmus else 0)
     sort_metric = st.selectbox(
@@ -369,7 +567,7 @@ st.dataframe(
             "trend_percent": "Trend %",
         }
     ),
-    use_container_width=True,
+    width="stretch",
 )
 
 chart_col1, chart_col2 = st.columns(2)
@@ -383,7 +581,7 @@ with chart_col1:
         labels={"species_label": "Species",
                 "global_success_score": "Success score"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with chart_col2:
     fig = px.bar(
@@ -395,7 +593,7 @@ with chart_col2:
         labels={"species_label": "Species",
                 "global_effort_score": "Effort score"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 chart_col3, chart_col4 = st.columns(2)
 with chart_col3:
@@ -412,7 +610,7 @@ with chart_col3:
             "global_success_score": "Global success score",
         },
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with chart_col4:
     fig = px.bar(
@@ -424,7 +622,7 @@ with chart_col4:
         labels={"species_label": "Species",
                 "density_proxy_per_km2": "Animals / km²"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 # -----------------------------
 # Per-species tabs
@@ -471,19 +669,19 @@ else:
                             "Area surveyed (km²)",
                         ],
                         "Value": [
-                            row["average_group_size"],
-                            row["group_size_min"],
-                            row["group_size_max"],
-                            row["male_per_100_female"],
-                            row["juvenile_per_100_female"],
-                            row["trend_direction"],
-                            row["trend_percent"],
-                            row["survey_effort_km"],
-                            row["area_surveyed_km2"],
+                            format_detail_value(row["average_group_size"]),
+                            format_detail_value(row["group_size_min"]),
+                            format_detail_value(row["group_size_max"]),
+                            format_detail_value(row["male_per_100_female"]),
+                            format_detail_value(row["juvenile_per_100_female"]),
+                            format_detail_value(row["trend_direction"]),
+                            format_detail_value(row["trend_percent"]),
+                            format_detail_value(row["survey_effort_km"]),
+                            format_detail_value(row["area_surveyed_km2"]),
                         ],
                     }
                 )
-                st.dataframe(details, use_container_width=True)
+                st.dataframe(details, width="stretch")
 
             with d2:
                 comp = pd.DataFrame(
@@ -517,7 +715,7 @@ else:
                     labels={
                         "normalized_value": "Normalized contribution (0-1)"},
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             c1, c2 = st.columns(2)
             with c1:
@@ -534,7 +732,7 @@ else:
                     color="type",
                     title=f"{row['species_label']} - success vs effort",
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             with c2:
                 radar_values = [
@@ -558,7 +756,7 @@ else:
                     title=f"{row['species_label']} profile",
                     showlegend=False,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             if pd.notna(row.get("trend_summary")) or pd.notna(row.get("trend_reason")):
                 with st.expander("Trend notes"):
@@ -585,7 +783,7 @@ rank_fig = px.scatter(
         "n_species": "Species count",
     },
 )
-st.plotly_chart(rank_fig, use_container_width=True)
+st.plotly_chart(rank_fig, width="stretch")
 
 st.dataframe(
     wmu_summary.rename(
@@ -600,7 +798,7 @@ st.dataframe(
             "n_species": "Species count",
         }
     ),
-    use_container_width=True,
+    width="stretch",
 )
 
 # -----------------------------
@@ -627,16 +825,8 @@ for metric, title in parallel_configs:
     if len(metric_cols) < 2:
         continue
 
-    color_series = pvt[metric_cols].mean(axis=1, skipna=True)
-
-    fig = px.parallel_coordinates(
-        pvt,
-        dimensions=metric_cols,
-        color=color_series,
-        title=title,
-        labels={c: c for c in metric_cols},
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    fig = parallel_coordinates_with_wmu_axis(pvt, metric_cols, title)
+    st.plotly_chart(fig, width="stretch")
 
 # -----------------------------
 # Composite green vs red stacked view
@@ -670,7 +860,7 @@ fig.update_layout(
     xaxis_title="WMU",
     yaxis_title="Score",
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 # -----------------------------
 # Footnotes
