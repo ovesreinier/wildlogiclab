@@ -620,6 +620,8 @@ def render_app_header(
     title: str,
     subtitle: str,
     company_name: str = CHANNEL_NAME,
+    youtube_url: str = YOUTUBE_URL,
+    facebook_url: str = FACEBOOK_URL,
 ) -> None:
     """Top-centered branding with logo, app title, and company name."""
     parts = _logo_mime_and_b64(logo_path)
@@ -633,6 +635,8 @@ def render_app_header(
     title_esc = _html_escape(title)
     sub_esc = _html_escape(subtitle)
     company_esc = _html_escape(company_name)
+    yt_esc = _html_escape(youtube_url)
+    fb_esc = _html_escape(facebook_url)
 
     st.markdown(
         f"""
@@ -675,6 +679,32 @@ def render_app_header(
   font-size: 1.02rem;
   line-height: 1.35;
 }}
+.wll-hero__social {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}}
+.wll-hero__social a {{
+  display: inline-block;
+  padding: 0.42rem 0.64rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}}
+.wll-hero__social a:hover {{
+  opacity: 0.9;
+}}
+.wll-hero-btn-yt {{
+  background: #c4302b;
+  color: #fff !important;
+}}
+.wll-hero-btn-fb {{
+  background: #1877f2;
+  color: #fff !important;
+}}
 .wll-hero__text .wll-hero__company {{
   margin: 0.32rem 0 0;
   color: rgba(49, 51, 63, 0.92);
@@ -692,6 +722,10 @@ def render_app_header(
     <h1>{title_esc}</h1>
     <div class="wll-hero__company">{company_esc}</div>
     <p>{sub_esc}</p>
+    <div class="wll-hero__social">
+      <a class="wll-hero-btn-yt" href="{yt_esc}" target="_blank" rel="noopener noreferrer">Follow on YouTube</a>
+      <a class="wll-hero-btn-fb" href="{fb_esc}" target="_blank" rel="noopener noreferrer">Follow on Facebook</a>
+    </div>
   </div>
 </div>
 """,
@@ -809,7 +843,14 @@ def render_sidebar_brand(
 
 st.set_page_config(page_title=APP_TITLE, layout="wide",
                    page_icon=LOGO_PATH)
-render_app_header(LOGO_PATH, APP_TITLE, APP_SUBTITLE, CHANNEL_NAME)
+render_app_header(
+    LOGO_PATH,
+    APP_TITLE,
+    APP_SUBTITLE,
+    CHANNEL_NAME,
+    YOUTUBE_URL,
+    FACEBOOK_URL,
+)
 
 
 if not DATA_PATH.exists():
