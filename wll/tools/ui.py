@@ -13,22 +13,22 @@ import streamlit as st
 # -----------------------------
 # Configuration
 # -----------------------------
-DATA_PATH = Path("database/alberta_wmu_survey_database_2025.json")
+DATA_PATH = Path("database/alberta_wmu_survey_database_2025_2.json")
 APP_TITLE = "Alberta WMUs Animal Surveys"
 APP_SUBTITLE = "Alberta Public Surveys - 2025"
-LOGO_PATH = "docs/assets/logo1-r.png"
-# Basic weighting formula for a global success score.
-# Positive metrics push success up; effort pushes it down.
-WEIGHTS = {
-    "density": 0.35,
-    "abundance": 0.20,
-    "observed": 0.15,
-    "trend": 0.10,
-    "sex_ratio": 0.10,
-    "juvenile_ratio": 0.10,
+LOGO_PATH = "docs/assets/logo2-r.png"
+CHANNEL_NAME = "Wild Logic Lab"
+# Set to your channel pages (used by sidebar follow buttons).
+YOUTUBE_URL = "https://www.youtube.com/@WildLogicLab"
+FACEBOOK_URL = "https://www.facebook.com/wildlogic.ca"
+# Success score weights (independent from hike effort).
+SUCCESS_WEIGHTS = {
+    "density": 0.45,
+    "abundance": 0.25,
+    "observed": 0.20,
+    "sex_ratio": 0.05,
+    "juvenile_ratio": 0.05,
 }
-
-EFFORT_PENALTY_WEIGHT = 0.45
 
 
 # -----------------------------
@@ -125,6 +125,9 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
                     "group_size_min": safe_float((sp.get("group_size_range") or [None, None])[0]),
                     "group_size_max": safe_float((sp.get("group_size_range") or [None, None])[1]),
                     "density_per_km2": safe_float(sp.get("density_per_km2")),
+                    "density_per_km2_inferred": safe_float(
+                        sp.get("density_per_km2_inferred_from_count")
+                    ),
                     "abundance_estimate": safe_float(sp.get("abundance_estimate")),
                     "ci90_low": safe_float((sp.get("confidence_interval_90") or [None, None])[0]),
                     "ci90_high": safe_float((sp.get("confidence_interval_90") or [None, None])[1]),
@@ -142,10 +145,16 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
 
-    # Fallback density for species like elk when abundance and area are available but density is missing.
+    # Density priority:
+    # 1) explicit density_per_km2 from parser
+    # 2) inferred density_per_km2_inferred_from_count (new parser field)
+    # 3) abundance / area fallback when possible
     density_fallback = df["abundance_estimate"] / df["area_km2"]
-    df["density_proxy_per_km2"] = df["density_per_km2"].fillna(
-        density_fallback)
+    df["density_proxy_per_km2"] = (
+        df["density_per_km2"]
+        .fillna(df["density_per_km2_inferred"])
+        .fillna(density_fallback)
+    )
 
     # Fallback effort metric from survey effort / abundance.
     effort_fallback = df["survey_effort_km"] / df["abundance_estimate"]
@@ -181,38 +190,84 @@ def compute_scores(df: pd.DataFrame) -> pd.DataFrame:
         out["abundance_estimate"], higher_is_better=True)
     out["observed_norm"] = normalize_series(
         out["observed_count"], higher_is_better=True)
-    out["trend_norm"] = normalize_series(
-        out["trend_score_raw"], higher_is_better=True)
     out["sex_ratio_norm"] = normalize_series(
         out["male_per_100_female"], higher_is_better=True)
     out["juvenile_ratio_norm"] = normalize_series(
         out["juvenile_per_100_female"], higher_is_better=True)
-    out["effort_norm_red"] = normalize_series(
-        out["effort_proxy_km"], higher_is_better=False)
-    out["effort_raw_norm"] = normalize_series(
-        out["effort_proxy_km"], higher_is_better=True)
-
     positive = (
-        WEIGHTS["density"] * out["density_norm"].fillna(0)
-        + WEIGHTS["abundance"] * out["abundance_norm"].fillna(0)
-        + WEIGHTS["observed"] * out["observed_norm"].fillna(0)
-        + WEIGHTS["trend"] * out["trend_norm"].fillna(0)
-        + WEIGHTS["sex_ratio"] * out["sex_ratio_norm"].fillna(0)
-        + WEIGHTS["juvenile_ratio"] * out["juvenile_ratio_norm"].fillna(0)
+        SUCCESS_WEIGHTS["density"] * out["density_norm"].fillna(0)
+        + SUCCESS_WEIGHTS["abundance"] * out["abundance_norm"].fillna(0)
+        + SUCCESS_WEIGHTS["observed"] * out["observed_norm"].fillna(0)
+        + SUCCESS_WEIGHTS["sex_ratio"] * out["sex_ratio_norm"].fillna(0)
+        + SUCCESS_WEIGHTS["juvenile_ratio"] *
+        out["juvenile_ratio_norm"].fillna(0)
     )
 
-    # Success score: positive ecological / survey indicators minus effort burden.
+    # Success score intentionally ignores hike effort.
     out["global_success_score"] = (
-        100
-        * (
-            positive
-            + EFFORT_PENALTY_WEIGHT * out["effort_norm_red"].fillna(0)
-        )
-        / (sum(WEIGHTS.values()) + EFFORT_PENALTY_WEIGHT)
-    ).round(1)
+        100 * positive / sum(SUCCESS_WEIGHTS.values())).round(1)
 
-    out["global_effort_score"] = (
-        100 * out["effort_raw_norm"].fillna(0)).round(1)
+    # Realistic hike burden: combine direct hike proxy with spatial search pressure.
+    density_pressure = np.where(
+        out["density_proxy_per_km2"].notna() & (
+            out["density_proxy_per_km2"] > 0),
+        1.0 / out["density_proxy_per_km2"],
+        np.nan,
+    )
+    area_pressure = np.where(
+        out["area_km2"].notna()
+        & (out["area_km2"] > 0)
+        & out["abundance_estimate"].notna()
+        & (out["abundance_estimate"] > 0),
+        out["area_km2"] / out["abundance_estimate"],
+        np.nan,
+    )
+
+    effort_components = pd.DataFrame(
+        {
+            "hike_component": np.log1p(out["effort_proxy_km"]),
+            "density_component": np.log1p(density_pressure),
+            "area_component": np.log1p(area_pressure),
+        }
+    )
+    component_weights = pd.Series(
+        {"hike_component": 0.55, "density_component": 0.30, "area_component": 0.15}
+    )
+    weighted_sum = effort_components.mul(
+        component_weights, axis=1).sum(axis=1, skipna=True)
+    weight_present = effort_components.notna().mul(
+        component_weights, axis=1).sum(axis=1)
+    out["effort_raw_blend"] = np.where(
+        weight_present > 0, weighted_sum / weight_present, np.nan)
+
+    valid_effort = pd.Series(out["effort_raw_blend"]).dropna()
+    if valid_effort.empty:
+        effort_scaled = pd.Series([0.5] * len(out), index=out.index)
+    else:
+        lo = np.percentile(valid_effort, 10)
+        hi = np.percentile(valid_effort, 90)
+        if np.isclose(lo, hi):
+            lo = valid_effort.min()
+            hi = valid_effort.max()
+        if np.isclose(lo, hi):
+            effort_scaled = pd.Series([0.5 if pd.notna(
+                v) else np.nan for v in out["effort_raw_blend"]], index=out.index)
+        else:
+            effort_scaled = (
+                (out["effort_raw_blend"] - lo) / (hi - lo)).clip(0, 1)
+
+    out["effort_raw_norm"] = effort_scaled
+    out["effort_norm_red"] = 1 - effort_scaled
+    # Hunting is always hard: keep score in a practical 35-100 band.
+    out["global_effort_score"] = (35 + 65 * effort_scaled.fillna(0.5)).round(1)
+    out["effort_difficulty"] = np.select(
+        [
+            out["global_effort_score"] < 55,
+            out["global_effort_score"] < 78,
+        ],
+        ["Hard", "Very hard"],
+        default="Fucking hard",
+    )
     out["success_minus_effort"] = (
         out["global_success_score"] - out["global_effort_score"]).round(1)
 
@@ -302,8 +357,10 @@ def parallel_coordinates_with_wmu_axis(
                 [0.5, "#2a2a2a"],
                 [1.0, "#353535"],
             ],
-            cmin=float(color_series.min()) if color_series.notna().any() else 0.0,
-            cmax=float(color_series.max()) if color_series.notna().any() else 1.0,
+            cmin=float(color_series.min()
+                       ) if color_series.notna().any() else 0.0,
+            cmax=float(color_series.max()
+                       ) if color_series.notna().any() else 1.0,
             showscale=False,
         ),
         # Use black text for all axis labels/ticks (regular weight).
@@ -427,8 +484,18 @@ def render_app_header(logo_path: str, title: str, subtitle: str) -> None:
     )
 
 
-def render_sidebar_brand(logo_path: str, caption: str) -> None:
-    """Centered logo and caption at the top of the sidebar."""
+def render_sidebar_brand(
+    logo_path: str,
+    caption: str,
+    channel_name: str = CHANNEL_NAME,
+    youtube_url: str = YOUTUBE_URL,
+    facebook_url: str = FACEBOOK_URL,
+) -> None:
+    """Centered logo, channel name, caption, and social links at the top of the sidebar."""
+    name_esc = _html_escape(channel_name)
+    cap_esc = _html_escape(caption)
+    yt_esc = _html_escape(youtube_url)
+    fb_esc = _html_escape(facebook_url)
     parts = _logo_mime_and_b64(logo_path)
     if parts:
         mime, b64 = parts
@@ -448,21 +515,75 @@ def render_sidebar_brand(logo_path: str, caption: str) -> None:
   height: auto;
   display: block;
 }}
+.wll-sidebar-brand__name {{
+  margin: 0.55rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(49, 51, 63, 0.95);
+}}
 .wll-sidebar-brand__cap {{
-  margin: 0.45rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.78rem;
   line-height: 1.35;
   color: rgba(49, 51, 63, 0.68);
 }}
+.wll-sidebar-brand__social {{
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 220px;
+  margin-top: 0.75rem;
+}}
+.wll-sidebar-brand__social a {{
+  display: block;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}}
+.wll-sidebar-brand__social a:hover {{
+  opacity: 0.9;
+}}
+.wll-btn-yt {{
+  background: #c4302b;
+  color: #fff !important;
+}}
+.wll-btn-fb {{
+  background: #1877f2;
+  color: #fff !important;
+}}
 </style>
 <div class="wll-sidebar-brand">
   <img src="data:{mime};base64,{b64}" alt="" />
+  <div class="wll-sidebar-brand__name">{name_esc}</div>
+  <p class="wll-sidebar-brand__cap">{cap_esc}</p>
+  <div class="wll-sidebar-brand__social">
+    <a class="wll-btn-yt" href="{yt_esc}" target="_blank" rel="noopener noreferrer">Follow on YouTube</a>
+    <a class="wll-btn-fb" href="{fb_esc}" target="_blank" rel="noopener noreferrer">Follow on Facebook</a>
+  </div>
 </div>
 """,
             unsafe_allow_html=True,
         )
     else:
+        st.markdown(f"**{_html_escape(channel_name)}**")
         st.caption(caption)
+        st.markdown(
+            f"""
+<div class="wll-sidebar-brand__social" style="margin-top:0.5rem;">
+  <a class="wll-btn-yt" href="{yt_esc}" target="_blank" rel="noopener noreferrer"
+     style="display:block;padding:0.45rem 0.65rem;border-radius:8px;background:#c4302b;color:#fff!important;text-align:center;text-decoration:none;font-size:0.82rem;font-weight:500;margin-bottom:0.45rem;">Follow on YouTube</a>
+  <a class="wll-btn-fb" href="{fb_esc}" target="_blank" rel="noopener noreferrer"
+     style="display:block;padding:0.45rem 0.65rem;border-radius:8px;background:#1877f2;color:#fff!important;text-align:center;text-decoration:none;font-size:0.82rem;font-weight:500;">Follow on Facebook</a>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
@@ -549,8 +670,7 @@ overview_cols = [
     "effort_proxy_km",
     "global_success_score",
     "global_effort_score",
-    "trend_direction",
-    "trend_percent",
+    "effort_difficulty",
 ]
 
 st.dataframe(
@@ -563,8 +683,7 @@ st.dataframe(
             "effort_proxy_km": "Avg hunting walk (km)",
             "global_success_score": "Success score",
             "global_effort_score": "Effort score",
-            "trend_direction": "Trend",
-            "trend_percent": "Trend %",
+            "effort_difficulty": "Effort level",
         }
     ),
     width="stretch",
@@ -627,7 +746,7 @@ with chart_col4:
 # -----------------------------
 # Per-species tabs
 # -----------------------------
-st.markdown("## Species tabs")
+st.markdown("## Species Details")
 if selected_df.empty:
     st.warning("No species data available for this WMU.")
 else:
@@ -663,6 +782,7 @@ else:
                             "Group size max",
                             "Male / 100 female",
                             "Juvenile / 100 female",
+                            "Effort level",
                             "Trend direction",
                             "Trend percent",
                             "Survey effort (km)",
@@ -673,7 +793,9 @@ else:
                             format_detail_value(row["group_size_min"]),
                             format_detail_value(row["group_size_max"]),
                             format_detail_value(row["male_per_100_female"]),
-                            format_detail_value(row["juvenile_per_100_female"]),
+                            format_detail_value(
+                                row["juvenile_per_100_female"]),
+                            format_detail_value(row.get("effort_difficulty")),
                             format_detail_value(row["trend_direction"]),
                             format_detail_value(row["trend_percent"]),
                             format_detail_value(row["survey_effort_km"]),
@@ -690,7 +812,6 @@ else:
                             "Density",
                             "Abundance",
                             "Observed",
-                            "Trend",
                             "Male ratio",
                             "Juvenile ratio",
                             "Effort advantage",
@@ -699,7 +820,6 @@ else:
                             row.get("density_norm"),
                             row.get("abundance_norm"),
                             row.get("observed_norm"),
-                            row.get("trend_norm"),
                             row.get("sex_ratio_norm"),
                             row.get("juvenile_ratio_norm"),
                             row.get("effort_norm_red"),
@@ -739,11 +859,11 @@ else:
                     row.get("density_norm", 0) or 0,
                     row.get("abundance_norm", 0) or 0,
                     row.get("observed_norm", 0) or 0,
-                    row.get("trend_norm", 0) or 0,
+                    row.get("sex_ratio_norm", 0) or 0,
                     row.get("effort_norm_red", 0) or 0,
                 ]
                 radar_labels = ["Density", "Abundance",
-                                "Observed", "Trend", "Effort Advantage"]
+                                "Observed", "Male ratio", "Effort Advantage"]
                 radar_values += radar_values[:1]
                 radar_labels += radar_labels[:1]
                 fig = go.Figure()
@@ -804,7 +924,7 @@ st.dataframe(
 # -----------------------------
 # Parallel coordinates section
 # -----------------------------
-st.markdown("## Parallel coordinates")
+st.markdown("## Global WMUs Overview")
 st.write(
     "Each chart uses species as axes. Because parallel coordinates work best with one metric family at a time, the app shows one chart per measurable variable."
 )
@@ -876,4 +996,4 @@ with st.expander("Model assumptions and caveats"):
 """
     )
 
-st.caption("Built for the uploaded Alberta WMU 2025 survey JSON.")
+st.caption("Alberta WMUs Aerial Survey - 2025. Reference: https://github.com/wildlife-labs/alberta-wmu-survey-dashboard")
