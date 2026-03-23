@@ -12,7 +12,8 @@ import streamlit as st
 # -----------------------------
 # Configuration
 # -----------------------------
-DATA_PATH = Path("database/alberta_wmu_survey_database_2025_with_draws.json")
+DATA_PATH = Path("database/alberta_wmu_survey_database_2025_with_draws_2.json")
+DRAW_SUMMARY_PATH = Path("database/wmu_draw_summary.json")
 APP_TITLE = "Wild Logic Lab"
 APP_SUBTITLE = "Alberta Public Aereal Survey - 2025"
 LOGO_PATH = "docs/assets/logo2-r.png"
@@ -135,34 +136,106 @@ def _derive_draw_fields_from_summary(sp: Dict) -> Tuple[Optional[str], Optional[
     return (draw_required, sex_value, complexity_value)
 
 
-def _collect_species_draw_entries(sp: Dict) -> List[Dict[str, str]]:
-    draw_summary = sp.get("draw_summary")
-    if not isinstance(draw_summary, dict):
-        return []
+def _normalize_species_key_for_draws(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(name).lower())
 
-    available_draws = draw_summary.get("available_draws")
-    if not isinstance(available_draws, list):
-        return []
 
+def _build_draw_species_lookup(draw_data: Dict) -> Dict[str, Dict[str, str]]:
+    lookup: Dict[str, Dict[str, str]] = {}
+    for wmu_id, wmu_draws in (draw_data or {}).items():
+        if not isinstance(wmu_draws, dict):
+            continue
+        norm_species_map: Dict[str, str] = {}
+        for species_display_name in wmu_draws.keys():
+            norm_key = _normalize_species_key_for_draws(species_display_name)
+            norm_species_map[norm_key] = species_display_name
+        lookup[str(wmu_id)] = norm_species_map
+    return lookup
+
+
+def _resolve_draw_species_name(
+    wmu_id: str,
+    species_key: str,
+    draw_species_lookup: Dict[str, Dict[str, str]],
+) -> Optional[str]:
+    wmu_lookup = draw_species_lookup.get(str(wmu_id), {})
+    if not wmu_lookup:
+        return None
+    norm = _normalize_species_key_for_draws(species_key)
+    return wmu_lookup.get(norm)
+
+
+def _collect_species_draw_entries_from_summary(
+    draw_summary_data: Dict,
+    draw_species_lookup: Dict[str, Dict[str, str]],
+    wmu_id: str,
+    species_key: str,
+) -> List[Dict[str, str]]:
+    wmu_draws = (draw_summary_data or {}).get(str(wmu_id))
+    if not isinstance(wmu_draws, dict):
+        return []
+    draw_species_name = _resolve_draw_species_name(
+        str(wmu_id), species_key, draw_species_lookup
+    )
+    if not draw_species_name:
+        return []
     entries: List[Dict[str, str]] = []
-    for draw in available_draws:
+    species_draws = wmu_draws.get(draw_species_name)
+    if not isinstance(species_draws, dict):
+        return []
+
+    for draw_class, draw in species_draws.items():
         if not isinstance(draw, dict):
             continue
-        # Support both parser naming variants:
-        # quote/quota and num_points/min_points.
-        quote_value = _first_non_empty(draw.get("quote"), draw.get("quota"))
-        num_points_value = _first_non_empty(draw.get("num_points"), draw.get("min_points"))
         entry = {
-            "quote": format_detail_value(quote_value),
-            "num_points": format_detail_value(num_points_value),
-            "guaranteed_points": format_detail_value(draw.get("guaranteed_points")),
-            "chance_at_min_points_percent": format_detail_value(
-                draw.get("chance_at_min_points_percent")
+            "draw_type": format_detail_value(draw_class),
+            "available_draws": format_detail_value(draw.get("available_draws")),
+            "minimum_points": format_detail_value(draw.get("minimum_points")),
+            "effective_application_point": format_detail_value(
+                draw.get("effective_application_point")
             ),
-            "difficulty": format_detail_value(draw.get("difficulty")),
+            "chance_at_min_points_percent": format_detail_value(
+                draw.get("chance_with_min_points_percent")
+            ),
+            "hunt_code": format_detail_value(draw.get("hunt_code")),
         }
         entries.append(entry)
     return entries
+
+
+def _derive_draw_fields_from_entries(
+    entries: List[Dict[str, str]]
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    if not entries:
+        return ("No", None, None)
+    draw_required = "Yes"
+    draw_types = [e.get("draw_type") for e in entries if e.get("draw_type") not in {None, "N/A"}]
+    if draw_types:
+        draw_sex = " / ".join(list(dict.fromkeys(draw_types)))
+    else:
+        draw_sex = None
+
+    difficulty_from_points = []
+    for e in entries:
+        points = e.get("minimum_points")
+        if points in {None, "N/A"}:
+            continue
+        try:
+            p = float(points)
+        except ValueError:
+            continue
+        if p <= 1:
+            difficulty_from_points.append("easy")
+        elif p <= 4:
+            difficulty_from_points.append("medium")
+        else:
+            difficulty_from_points.append("hard")
+    draw_complexity = (
+        " / ".join(list(dict.fromkeys(difficulty_from_points)))
+        if difficulty_from_points
+        else None
+    )
+    return (draw_required, draw_sex, draw_complexity)
 
 
 def _derive_wmu_area_from_background(background_summary: Optional[str]) -> Optional[float]:
@@ -272,7 +345,11 @@ def compute_trend_score(trend_direction: Optional[str], trend_percent: Optional[
     return np.nan
 
 
-def build_species_records(raw: Dict) -> pd.DataFrame:
+def build_species_records(
+    raw: Dict,
+    draw_summary_data: Optional[Dict] = None,
+    draw_species_lookup: Optional[Dict[str, Dict[str, str]]] = None,
+) -> pd.DataFrame:
     rows: List[Dict] = []
     wmus = raw.get("wmus", {})
 
@@ -283,18 +360,28 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
         background_summary = wmu_data.get("background_summary")
         area_km2_value = safe_float(wmu_data.get("area_km2"))
         if area_km2_value is None:
-            area_km2_value = _derive_wmu_area_from_background(background_summary)
+            area_km2_value = _derive_wmu_area_from_background(
+                background_summary)
         area_surveyed_value = safe_float(survey.get("area_surveyed_km2"))
         if area_surveyed_value is None:
-            area_surveyed_value = _derive_surveyed_area_from_background(background_summary)
+            area_surveyed_value = _derive_surveyed_area_from_background(
+                background_summary)
         if area_surveyed_value is None:
-            area_surveyed_value = _derive_surveyed_area_from_species(species_map)
+            area_surveyed_value = _derive_surveyed_area_from_species(
+                species_map)
 
         for species_name, sp in species_map.items():
-            draw_required_summary, draw_sex_summary, draw_complexity_summary = _derive_draw_fields_from_summary(
-                sp
+            draw_entries_summary = _collect_species_draw_entries_from_summary(
+                draw_summary_data or {},
+                draw_species_lookup or {},
+                str(wmu_id),
+                species_name,
             )
-            draw_obj = sp.get("draw") if isinstance(sp.get("draw"), dict) else {}
+            draw_required_summary, draw_sex_summary, draw_complexity_summary = _derive_draw_fields_from_entries(
+                draw_entries_summary
+            )
+            draw_obj = sp.get("draw") if isinstance(
+                sp.get("draw"), dict) else {}
             draw_required_raw = _first_non_empty(
                 draw_required_summary,
                 sp.get("draw_required"),
@@ -730,11 +817,18 @@ if not DATA_PATH.exists():
         f"Could not find `{DATA_PATH}`. Place the JSON file in the same folder as this Streamlit script."
     )
     st.stop()
+if not DRAW_SUMMARY_PATH.exists():
+    st.error(
+        f"Could not find `{DRAW_SUMMARY_PATH}`. Place draw summary JSON in the database folder."
+    )
+    st.stop()
 
 raw_data = load_json(DATA_PATH)
-df = compute_scores(build_species_records(raw_data))
+draw_summary_data = load_json(DRAW_SUMMARY_PATH)
+draw_species_lookup = _build_draw_species_lookup(draw_summary_data)
+df = compute_scores(build_species_records(raw_data, draw_summary_data, draw_species_lookup))
 wmu_area_summary = get_wmu_area_summary(raw_data)
-st.subheader("Best 5 WMUs by species")
+st.subheader("Best WMUs by species")
 st.caption(
     "Ranking is based on highest success chance and lower effort. "
     "Green = success chance, Red = effort."
@@ -877,6 +971,12 @@ st.markdown(
 )
 
 species_labels = sorted(df["species_label"].dropna().unique().tolist())
+rank_display_options = [1, 5, 10, 15, "MAX"]
+selected_rank_option = st.select_slider(
+    "How many WMUs to show",
+    options=rank_display_options,
+    value=5,
+)
 show_all_species = st.checkbox(
     "Show All Species",
     value=False,
@@ -887,35 +987,44 @@ selected_species_basic = st.selectbox(
     index=0,
     disabled=show_all_species,
 )
-species_to_render = species_labels if show_all_species else [selected_species_basic]
+species_to_render = species_labels if show_all_species else [
+    selected_species_basic]
 for species_label in species_to_render:
-    sp_rank = (
+    sp_rank_sorted = (
         df[df["species_label"] == species_label]
         .sort_values(
             ["global_success_score", "global_effort_score"],
             ascending=[False, True],
         )
-        .head(5)
         .copy()
     )
+    if selected_rank_option == "MAX":
+        sp_rank = sp_rank_sorted
+    else:
+        sp_rank = sp_rank_sorted.head(int(selected_rank_option))
 
     if sp_rank.empty:
         continue
 
+    rendered_count = len(sp_rank)
     sp_rank = sp_rank.reset_index(drop=True)
     container = st.container() if not show_all_species else st.expander(
-        f"{species_label} - Top 5 WMUs", expanded=False
+        f"{species_label} - Top {rendered_count} WMUs", expanded=False
     )
     with container:
         if not show_all_species:
-            st.markdown(f"**{species_label} - Top 5 WMUs**")
+            st.markdown(f"**{species_label} - Top {rendered_count} WMUs**")
         for _, row in sp_rank.iterrows():
             success_pct = float(np.clip(row["global_success_score"], 0, 100))
             effort_pct = float(np.clip(row["global_effort_score"], 0, 100))
             rank_pos = int(row.name) + 1
-            filled_stars = max(1, 6 - rank_pos)
+            filled_stars = max(0, 6 - rank_pos) if rank_pos <= 5 else 0
             empty_stars = 5 - filled_stars
-            wmu_label = _html_escape(f"WMU-{row['wmu_id']}")
+            if show_all_species:
+                wmu_label_raw = f"WMU-{row['wmu_id']} ({species_label})"
+            else:
+                wmu_label_raw = f"WMU-{row['wmu_id']}"
+            wmu_label = _html_escape(wmu_label_raw)
             stars_html = (
                 '<span class="wll-basic-star wll-basic-star--filled">★</span>' * filled_stars
                 + '<span class="wll-basic-star wll-basic-star--empty">★</span>' * empty_stars
@@ -929,18 +1038,24 @@ for species_label in species_to_render:
             species_raw = ((wmu_raw.get("species") or {}) if isinstance(wmu_raw, dict) else {}).get(
                 row["species"], {}
             )
-            draw_entries = _collect_species_draw_entries(species_raw if isinstance(species_raw, dict) else {})
+            draw_entries = _collect_species_draw_entries_from_summary(
+                draw_summary_data,
+                draw_species_lookup,
+                str(row["wmu_id"]),
+                row["species"],
+            )
 
             if draw_entries:
                 draw_lines = []
                 for draw_entry in draw_entries:
                     draw_lines.append(
                         '<div class="wll-basic-draw-item">'
-                        f'<strong>Quote:</strong> {_html_escape(draw_entry["quote"])} | '
-                        f'<strong>Num points:</strong> {_html_escape(draw_entry["num_points"])} | '
-                        f'<strong>Guaranteed points:</strong> {_html_escape(draw_entry["guaranteed_points"])} | '
+                        f'<strong>Type:</strong> {_html_escape(draw_entry["draw_type"])} | '
+                        f'<strong>Available draws:</strong> {_html_escape(draw_entry["available_draws"])} | '
+                        f'<strong>Minimum points:</strong> {_html_escape(draw_entry["minimum_points"])} | '
+                        f'<strong>Effective point:</strong> {_html_escape(draw_entry["effective_application_point"])} | '
                         f'<strong>Chance at min points %:</strong> {_html_escape(draw_entry["chance_at_min_points_percent"])} | '
-                        f'<strong>Difficulty:</strong> {_html_escape(draw_entry["difficulty"])}'
+                        f'<strong>Hunt code:</strong> {_html_escape(draw_entry["hunt_code"])}'
                         "</div>"
                     )
                 draw_text_html = (

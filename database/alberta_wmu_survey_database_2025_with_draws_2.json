@@ -1,0 +1,2103 @@
+{
+  "metadata": {
+    "dataset_name": "alberta_wmu_aerial_survey_extraction",
+    "source": "uploaded_pdf_reports",
+    "year": 2025,
+    "notes": [
+      "Values extracted from uploaded Alberta aerial wildlife survey PDFs.",
+      "Fields not present in the PDFs were set to 'non-public-data available' or null.",
+      "derived_effort_km_per_expected_animal is computed as 1 / density_per_km2 and is only a proxy from aerial survey density, not hunter success.",
+      "draw_summary was appended from the uploaded 2025 AlbertaRELM draw summary PDFs. Fields use visible rows from the uploaded PDFs; absent rows are left as NA."
+    ]
+  },
+  "wmus": {
+    "102": {
+      "wmu_id": "102",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-102-2025.pdf",
+      "year": 2025,
+      "area_km2": 3177,
+      "background_summary": "Alberta Wildlife Management Unit (WMU) 102 (Pakowki WMU) is south of Medicine Hat in the extreme southeast corner of Alberta. This WMU covers an area of approximately 3177 km 2. WMU 102 is within Alberta\u2019s dry mixed-grass natural subregion. Land is a mixture of deeded and crown land under grazing disposition. General habitat and land use consists of cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing. The eastern half of WMU 102 is primarily large blocks of crown owned native grassland including two provincial grazing reserves. The Milk River valley is a prominent feature angling east and south through the west half of the WMU until it enters the USA. This valley includes numerous complex and steep coulees as well as sagebrush flats and riparian cottonwood forests in the valley bottom. Additional significant topographic features in the WMU include the Lost River valley, Sage Creek valley, and Cutbank Creek valley. Oil and gas development is present in some locations in the WMU. Chronic Wasting disease is established within the WMU, with the highest detected rate of prevalence in mule deer being 5.7% in 2021. Submitted",
+      "survey": {
+        "method": "transect",
+        "effort_km": 1976.0,
+        "coverage_percent": 50.0,
+        "area_surveyed_km2": 1580.91,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 646,
+          "average_group_size": 9.0,
+          "group_size_range": [
+            1.0,
+            24.0
+          ],
+          "density_per_km2": 0.41,
+          "abundance_estimate": 1298,
+          "confidence_interval_90": [
+            956.0,
+            1640.0
+          ],
+          "male_per_100_female": 43.0,
+          "juvenile_per_100_female": 71.0,
+          "classified_counts": {
+            "male": 261,
+            "female": 607,
+            "juvenile": 430
+          },
+          "male_size_classification": {
+            "small": 31,
+            "medium": 49,
+            "large": 33
+          },
+          "trend_summary": "The 2025 population estimate represents a 37% decrease from the last aerial ungulate survey population estimate for mule deer within WMU 102 (conducted in 2018).",
+          "trend_direction": "decrease",
+          "trend_percent": 37.0,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 2.439,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 102,
+                "quota": 47,
+                "season_dates": "Nov 05-08, 12-15, 19-22, 26-29",
+                "min_points": 4,
+                "guaranteed_points": 5,
+                "chance_at_min_points_percent": 30.0,
+                "difficulty": "medium",
+                "raw_point_rows_summary": "5+:100, 4:30, 3-0:0",
+                "notes": "Antlered Mule Deer"
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 166,
+          "average_group_size": 15.0,
+          "group_size_range": [
+            2.0,
+            52.0
+          ],
+          "density_per_km2": 0.11,
+          "abundance_estimate": 334,
+          "confidence_interval_90": [
+            192.0,
+            475.0
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": "The 2025 population estimate represents a 67.1% decrease when compared to 2018 data.",
+          "trend_direction": "decrease",
+          "trend_percent": 67.1,
+          "trend_reason": "Such a dramatic increase in abundance cannot be accounted for solely by intrinsic growth rate and must indicate significant immigration of white-tailed deer into WMU 116 from surrounding units.",
+          "derived_effort_km_per_expected_animal": 9.091,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_white_tailed_deer_draw",
+                "hunt_code": 102,
+                "quota": 34,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 1,
+                "guaranteed_points": 2,
+                "chance_at_min_points_percent": 78.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "2+:100, 1:78, 0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 7,
+          "average_group_size": 1.0,
+          "group_size_range": [
+            1.0,
+            2.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 102,
+                "quota": 2,
+                "season_dates": "Archery: Sep 01-Oct 31; Rifle: Nov 01-Nov 30",
+                "min_points": 6,
+                "guaranteed_points": 6,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "6+:100, 5-0:0",
+                "notes": "Antlerless Moose"
+              },
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 102,
+                "quota": 2,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 16,
+                "guaranteed_points": 16,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "very_hard",
+                "raw_point_rows_summary": "17:100, 16:100, 15-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "elk": {
+          "observed_count": 8,
+          "minimum_total_count": 519,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 44.0,
+          "juvenile_per_100_female": 52.0,
+          "classified_counts": {
+            "female": 266,
+            "juvenile": 137,
+            "male": 116
+          },
+          "male_size_classification": {
+            "small": 24,
+            "medium": 55,
+            "large": 37
+          },
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "This herd growth could not be explained solely by intrinsic growth rate and must indicate significant immigration into the WMU.",
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_elk_draw",
+                "hunt_code": 861,
+                "quota": 4,
+                "season_dates": "Sep 01 2025-Sep 23 2025",
+                "min_points": 15,
+                "guaranteed_points": 16,
+                "chance_at_min_points_percent": 75.0,
+                "difficulty": "very_hard",
+                "raw_point_rows_summary": "16:100, 15:75, 14-0:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_elk_draw",
+                "hunt_code": 863,
+                "quota": 5,
+                "season_dates": "Sep 24 2025-Oct 08 2025",
+                "min_points": 11,
+                "guaranteed_points": 12,
+                "chance_at_min_points_percent": 25.0,
+                "difficulty": "very_hard",
+                "raw_point_rows_summary": "12+:100, 11:25, 10-0:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_elk_draw",
+                "hunt_code": 865,
+                "quota": 5,
+                "season_dates": "Oct 09 2025-Oct 23 2025",
+                "min_points": 9,
+                "guaranteed_points": 9,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "10:100, 9:100, 8-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "116": {
+      "wmu_id": "116",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-116-2025.pdf",
+      "year": 2025,
+      "area_km2": 2096,
+      "background_summary": "A lberta Wildlife Management Unit (WMU) 116 (Seven Persons) is located generally southwest of Medicine Hat and covers an area of 2,096 km2. The majority of the unit is within Alberta\u2019s dry mixed-grass natural subregion, with the southeast portion adjacent to Cypress Hills extending into the mixed-grass natural subregion. Several drainages containing large coulee systems originate in the Cypress Hills and extend westward and northward through the WMU, including Peigan Creek, Bullshead Creek, and Seven Persons Creek. Land is primarily deeded, and general habitat and land use consists of cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing. Some parcels of crown owned native grassland under grazing lease are also present. Oil and gas development is established throughout the WMU, and in recent years, renewable energy development has also increased. Chronic Wasting Disease is now well established within the WMU, with 80 positives since first detected in 2015 (https://open.alberta.ca/publications/chronicwasting-disease-in-alberta-by-wildlife-managementunit). Submitted samples from 2023 indicate prevalence rates of 33% in mu",
+      "survey": {
+        "method": "transect",
+        "effort_km": 1304.0,
+        "coverage_percent": 50.0,
+        "area_surveyed_km2": 1043.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 828,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.79,
+          "abundance_estimate": 1662,
+          "confidence_interval_90": [
+            1012.0,
+            2312.0
+          ],
+          "male_per_100_female": 21.0,
+          "juvenile_per_100_female": 69.0,
+          "classified_counts": {
+            "male": 184,
+            "female": 875,
+            "juvenile": 603
+          },
+          "male_size_classification": {
+            "small": 22,
+            "medium": 38,
+            "large": 19
+          },
+          "trend_summary": "The 2025 mule deer survey results indicate stable abundance from 2024, but with differences in distribution and demographics.",
+          "trend_direction": "stable",
+          "trend_percent": null,
+          "trend_reason": "While some of the differences between buck:doe ratios and antler size classifications could be attributed to annual variation in timing of antler drop, they are consistent with sex and age specific CWD prevalence and mortality rates.",
+          "derived_effort_km_per_expected_animal": 1.266,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 116,
+                "quota": 126,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 2,
+                "guaranteed_points": 3,
+                "chance_at_min_points_percent": 12.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "3:100, 2:12, 1-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 780,
+          "average_group_size": 15.9,
+          "group_size_range": [
+            1.0,
+            108.0
+          ],
+          "density_per_km2": 0.75,
+          "abundance_estimate": 1566,
+          "confidence_interval_90": [
+            1072.0,
+            2059.0
+          ],
+          "male_per_100_female": 8.0,
+          "juvenile_per_100_female": 70.0,
+          "classified_counts": {
+            "male": 70,
+            "female": 880,
+            "juvenile": 616
+          },
+          "male_size_classification": null,
+          "trend_summary": "The 2025 white-tailed deer survey results indicate a 260% increase in abundance.",
+          "trend_direction": "increase",
+          "trend_percent": 260.0,
+          "trend_reason": "Such a dramatic increase in abundance cannot be accounted for solely by intrinsic growth rate and must indicate significant immigration of white-tailed deer into WMU 116 from surrounding units.",
+          "derived_effort_km_per_expected_animal": 1.333,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_white_tailed_deer_draw",
+                "hunt_code": 116,
+                "quota": 93,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 1,
+                "guaranteed_points": 2,
+                "chance_at_min_points_percent": 51.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "2+:100, 1:51, 0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 21,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.02,
+          "abundance_estimate": 42,
+          "confidence_interval_90": [
+            22.0,
+            63.0
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 50.0,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 116,
+                "quota": 6,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 5,
+                "guaranteed_points": 6,
+                "chance_at_min_points_percent": 40.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "6+:100, 5:40, 4-0:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 116,
+                "quota": 3,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 11,
+                "guaranteed_points": 11,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "very_hard",
+                "raw_point_rows_summary": "13:100, 11:100, 10-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "118": {
+      "wmu_id": "118",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-118-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "Alberta Wildlife Management Unit (WMU) 118 is located in southeast AB, south of the Cypress Hills Interprovincial Park boundary and north of secondary highway 501. This WMU is dominated by native dry mixed-grass prairie with extensive silver sagebrush communities. It also contains numerous permanent and intermittent watercourses forming sinuous steep to rolling valley complexes. The majority of the WMU contains very little tree cover. It is considered one of the premier mule deer units in Alberta due to it being dominated by large blocks of high-quality native habitat with relatively low human impacts. Land ownership is dominated by provincially owned Public Land under grazing lease, and cattle ranching is the primary human land use in the area. The total area of the WMU is 1964 km 2. Chr onic Wasting Disease is now well established within the WMU, with 68 positives since first detected in 2013 ( https://open.alberta.ca/publications/chronicwasting-disease-in-alberta-by-wildlife-managementunit) . Submitted samples from 2023 indicate prevalence rates of 18% in mule deer and 19% of 21 mule deer bucks tested positive for the disease. A survey for ungulates (mule deer, white-tailed deer",
+      "survey": {
+        "method": "transect",
+        "effort_km": 1219.0,
+        "coverage_percent": 49.7,
+        "area_surveyed_km2": 975.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 985,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.01,
+          "abundance_estimate": 1983,
+          "confidence_interval_90": [
+            1419.0,
+            2547.0
+          ],
+          "male_per_100_female": 26.0,
+          "juvenile_per_100_female": 67.0,
+          "classified_counts": {
+            "male": 267,
+            "female": 1028,
+            "juvenile": 688
+          },
+          "male_size_classification": null,
+          "trend_summary": "The 2024 population estimate represents a 14.5% decrease from the last aerial ungulate survey population estimate for mule deer within WMU 118 (conducted in 2018/19).",
+          "trend_direction": "decrease",
+          "trend_percent": 14.5,
+          "trend_reason": "It should be noted that several oneantlered bucks were observed indicating antler drop was underway, and buck numbers were undoubtedly underrepresented in the totals.",
+          "derived_effort_km_per_expected_animal": 0.99,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 118,
+                "quota": 88,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 2,
+                "guaranteed_points": 3,
+                "chance_at_min_points_percent": 26.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "3:100, 2:26, 1-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 36,
+          "average_group_size": 6.0,
+          "group_size_range": [
+            2.0,
+            11.0
+          ],
+          "density_per_km2": 0.037,
+          "abundance_estimate": 72,
+          "confidence_interval_90": [
+            36.0,
+            109.0
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 27.027,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_white_tailed_deer_draw",
+                "hunt_code": 118,
+                "quota": 19,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 1,
+                "guaranteed_points": null,
+                "chance_at_min_points_percent": 33.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "1:33, 0:0",
+                "notes": "No point tier reached 100% in visible row."
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 16,
+          "average_group_size": 3.0,
+          "group_size_range": [
+            1.0,
+            8.0
+          ],
+          "density_per_km2": 0.016,
+          "abundance_estimate": 32,
+          "confidence_interval_90": [
+            11.0,
+            53.0
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "It is likely the deep snow conditions in the park in 2025 had caused most ungulates to leave and move to lower elevations where they were captured by the surveys in surrounding WMUs.",
+          "derived_effort_km_per_expected_animal": 62.5,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 118,
+                "quota": 3,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 4,
+                "guaranteed_points": null,
+                "chance_at_min_points_percent": 75.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4:75, 3:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 118,
+                "quota": 2,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 10,
+                "guaranteed_points": 11,
+                "chance_at_min_points_percent": 50.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "11:100, 10:50, 9-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "Alberta Wildlife Management Unit (WMU) 118 is located in southeast AB, south of the Cypress Hills Interprovincial Park boundary and north of secondary highway 501. This WMU is dominated by native dry mixed-grass prairie with extensive silver sagebrush communities. It also contains numerous permanent and intermittent watercourses forming sinuous steep to rolling valley complexes. The majority of the WMU contains very little tree cover. It is considered one of the premier mule deer units in Albert",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "119": {
+      "wmu_id": "119",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-119-2025.pdf",
+      "year": 2025,
+      "area_km2": 1297,
+      "background_summary": "Alberta Wildlife Management Unit (WMU) 119 (South Irvine) is located southeast of Medicine Hat, and covers an area of 1,297 km 2. The unit is adjacent to the northern border of Cypress Hills Provincial Park, and within Alberta\u2019s mixedgrass natural subregion, with the north portion extending in to the dry mixedgrass natural region. Several drainages containing large coulee systems originate in the Cypress Hills and extend northward through the WMU, including Ross Creek, McAlpine Creek, and MacKay Creek. Land is primarily deeded, and general habitat and land use consists of cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing. Some smaller parcels of crown owned native grassland under grazing lease are also present. Oil and gas development is present throughout the WMU, and in recent years, renewable energy development has also increased. Chronic Wasting Disease is established within the WMU, with 93 positives since first detected in 2009 ( https://open.alberta.ca/publications/chronicwasting-disease-in-alberta-by-wildlife-managementunit) . Submitted samples from 2023 indicate prevalence rates of 34% in mule deer and 29% ",
+      "survey": {
+        "method": "transect",
+        "effort_km": 806.0,
+        "coverage_percent": 50.0,
+        "area_surveyed_km2": 644.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 497,
+          "average_group_size": 20.9,
+          "group_size_range": [
+            1.0,
+            177.0
+          ],
+          "density_per_km2": 0.78,
+          "abundance_estimate": 1000,
+          "confidence_interval_90": [
+            739.0,
+            1259.0
+          ],
+          "male_per_100_female": 25.0,
+          "juvenile_per_100_female": 75.0,
+          "classified_counts": {
+            "male": 125,
+            "female": 500,
+            "juvenile": 375
+          },
+          "male_size_classification": null,
+          "trend_summary": "The 2025 mule deer survey results indicate a 46% decrease in abundance since 2021.",
+          "trend_direction": "decrease",
+          "trend_percent": 46.0,
+          "trend_reason": "Immigration patterns could also influence population demographics, and winter mortality after the 2021 survey may have also had an impact on mule deer abundance in WMU119.",
+          "derived_effort_km_per_expected_animal": 1.282,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 119,
+                "quota": 54,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 47.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4:100, 3:47, 2-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 649,
+          "average_group_size": 20.9,
+          "group_size_range": [
+            1.0,
+            177.0
+          ],
+          "density_per_km2": 1.01,
+          "abundance_estimate": 1305,
+          "confidence_interval_90": [
+            72.0,
+            1858.0
+          ],
+          "male_per_100_female": 4.0,
+          "juvenile_per_100_female": 73.0,
+          "classified_counts": {
+            "male": 29,
+            "female": 737,
+            "juvenile": 538
+          },
+          "male_size_classification": null,
+          "trend_summary": "The 2025 white-tailed deer survey results indicate a 38% increase in abundance since 2021, an average of 9.",
+          "trend_direction": "increase",
+          "trend_percent": 38.0,
+          "trend_reason": "The extremely low buck:doe ratios, and observations of \u201cunicorn\u201d bucks, indicate antler drop was well-advanced by February in both 2021 and 2025.",
+          "derived_effort_km_per_expected_animal": 0.99,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_white_tailed_deer_draw",
+                "hunt_code": 119,
+                "quota": 120,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 1,
+                "guaranteed_points": 2,
+                "chance_at_min_points_percent": 60.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "2+:100, 1:60, 0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 11,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": "Considering this, moose abundance is low but stable.",
+          "trend_direction": "stable",
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 119,
+                "quota": 3,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 4,
+                "guaranteed_points": 5,
+                "chance_at_min_points_percent": 25.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "5:100, 4:25, 3-0:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 119,
+                "quota": 2,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 9,
+                "guaranteed_points": 10,
+                "chance_at_min_points_percent": 20.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "10:100, 9:20, 8-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "cultivated cropland for the purpose of annual crop production, and tame and native grassland used for cattle grazing",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "124": {
+      "wmu_id": "124",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-124-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "Alberta Wildlife Management Unit (WMU) 124 (Whitla WMU) includes part of the city of Medicine Hat and the surrounding area to the west. The boundaries of WMU 124 are defined by highways and roads. The WMU starts at the junction of Highways 1 and 3 in Medicine Hat, then runs northwest along Highway 1 to Range Road 9-3. The boundary then runs south along Range Road 9-3 to Secondary Highway 524. The boundary then runs west along Secondary Road 524 to Secondary Road 879, then south along Secondary Road 879 to Highway 3, then northeast along Highway 3 to the starting point. The WMU is relatively small with an area of 1468 km 2. WMU 124 is bisected by the South Saskatchewan River which is oriented mainly in an east/west direction. Approximately 75 percent of the WMU is heavily impacted by human development including annual cultivation (both dryland and irrigation), wind farm development, and road networks. The remaining 25 percent is native grassland, mainly associated with the river valley. Most of the remaining mule deer habitat in the WMU is associated with the coulees and draws along the South Saskatchewan River. Chronic Wasting Disease is now well established within the WMU, with 56",
+      "survey": {
+        "method": "transect",
+        "effort_km": 912.0,
+        "coverage_percent": 50.0,
+        "area_surveyed_km2": 729.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 223,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.31,
+          "abundance_estimate": 449,
+          "confidence_interval_90": [
+            287.0,
+            611.0
+          ],
+          "male_per_100_female": 16.0,
+          "juvenile_per_100_female": 78.0,
+          "classified_counts": {
+            "male": 37,
+            "female": 232,
+            "juvenile": 180
+          },
+          "male_size_classification": {
+            "small": 13,
+            "medium": 2,
+            "large": 3
+          },
+          "trend_summary": "The 2025 population estimate represents a 37% decrease from the last aerial ungulate survey population estimate for mule deer within WMU 124 (conducted in 2009).",
+          "trend_direction": "decrease",
+          "trend_percent": 37.0,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 3.226,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 124,
+                "quota": 50,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 73.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4:100, 3:73, 2-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 265,
+          "average_group_size": 20.0,
+          "group_size_range": [
+            2.0,
+            59.0
+          ],
+          "density_per_km2": 0.36,
+          "abundance_estimate": 533,
+          "confidence_interval_90": [
+            219.0,
+            848.0
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": "The 2025 population estimate represents a 67% increase when compared to 2009 data, however once again different methodologies were used between surveys, so results are not directly comparable.",
+          "trend_direction": "increase",
+          "trend_percent": 67.0,
+          "trend_reason": "Only three white-tailed bucks were observed on the survey, indicating that antler drop was almost completed.",
+          "derived_effort_km_per_expected_animal": 2.778,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_white_tailed_deer_draw",
+                "hunt_code": 124,
+                "quota": 66,
+                "season_dates": "Nov 05 2025-Nov 29 2025",
+                "min_points": 1,
+                "guaranteed_points": 2,
+                "chance_at_min_points_percent": 80.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "2:100, 1:80, 0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 2,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 124,
+                "quota": 1,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 4,
+                "guaranteed_points": null,
+                "chance_at_min_points_percent": 33.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4:33, 2-0:0",
+                "notes": null
+              },
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 124,
+                "quota": 1,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 7,
+                "guaranteed_points": 7,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "7:100, 5-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "Alberta Wildlife Management Unit (WMU) 124 (Whitla WMU) includes part of the city of Medicine Hat and the surrounding area to the west. The boundaries of WMU 124 are defined by highways and roads. The WMU starts at the junction of Highways 1 and 3 in Medicine Hat, then runs northwest along Highway 1 to Range Road 9-3. The boundary then runs south along Range Road 9-3 to Secondary Highway 524. The boundary then runs west along Secondary Road 524 to Secondary Road 879, then south along Secondary R",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "302": {
+      "wmu_id": "302",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-302-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 302 is located west of Pincher Creek, Alberta and South of Lundbreck, Alberta. It is bordered by highways 6 and 3, Drywood creek in the south and the provincial forest reserve and castle provincial park on the west. It consists of foothills, grasslands and cropland habitats. WMU 302 has good quality habitat for moose, elk, and both deer species. WMU 302 was also surveyed specifically for elk in 2015.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 442.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": 354.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 324,
+          "average_group_size": 6.6,
+          "group_size_range": [
+            1.0,
+            21.0
+          ],
+          "density_per_km2": 0.91,
+          "abundance_estimate": 649,
+          "confidence_interval_90": null,
+          "male_per_100_female": 34.0,
+          "juvenile_per_100_female": 59.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Due to the timing of the survey being mid-February, a small amount of antler drop had occurred which will affect these ratios.",
+          "derived_effort_km_per_expected_animal": 1.099,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 302,
+                "quota": 45,
+                "season_dates": "Sep 01-Oct 24 (Archery), Oct 25-Nov 30 (Rifle)",
+                "min_points": 4,
+                "guaranteed_points": 5,
+                "chance_at_min_points_percent": 17.4,
+                "difficulty": "medium",
+                "raw_point_rows_summary": "5+:100, 4:17.4, 3-0:0",
+                "notes": "Antlered Mule Deer"
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 602,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.7,
+          "abundance_estimate": 1205,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "White-tailed deer were not classified into sex and age cohorts due to extensive antler drop having occurred by the time the survey was conducted.",
+          "derived_effort_km_per_expected_animal": 0.588,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 61,
+          "average_group_size": 1.5,
+          "group_size_range": [
+            1.0,
+            3.0
+          ],
+          "density_per_km2": 0.17,
+          "abundance_estimate": 122,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Moose were generally counted anecdotally in past surveys for a minimum total count, which likely greatly underestimated the population.",
+          "derived_effort_km_per_expected_animal": 5.882,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "elk": {
+          "observed_count": 668,
+          "minimum_total_count": null,
+          "average_group_size": 59.0,
+          "group_size_range": [
+            1.0,
+            242.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 11.0,
+          "juvenile_per_100_female": 26.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_elk_draw",
+                "hunt_code": 302,
+                "quota": 50,
+                "season_dates": "Oct 25-Nov 30",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 10.9,
+                "difficulty": "medium",
+                "raw_point_rows_summary": "4+:100, 3:10.9, 2-0:0",
+                "notes": "Antlerless Elk"
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "foothills, grasslands and cropland habitats",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "303": {
+      "wmu_id": "303",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-303-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 303 is a small unit surrounding Blairmore located in southwest, Alberta. It shares the same boundaries as the municipality of Crowsnest Pass except for the north boundary which follows the provincial Forest Reserve boundary. The Crowsnest River and Highway 3 both run through it\u2019s center. It consists of mountain habitats and the riparian habitat created by the Crowsnest river. WMU 303 was also surveyed specifically for elk in 2015. Past surveys did not calculate population densities or estimates for deer species or moose.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 101.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": 80.8,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "elk": {
+          "observed_count": 294,
+          "minimum_total_count": null,
+          "average_group_size": 73.5,
+          "group_size_range": [
+            5.0,
+            219.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 13.0,
+          "juvenile_per_100_female": 24.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "mountain habitats and the riparian habitat created by the Crowsnest river",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "304": {
+      "wmu_id": "304",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-304-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 304 is located in the north Porcupine Hills, southwest of Nanton, Alberta. It is a large WMU that is bordered by highways 22, 2 and secondary road 520 and the road known locally as the Williams coulee road. Portions of the unit lie within the montane, foothills fescue and mixed-grass natural subregions of Alberta. The easternmost portion contains cropland while the majority of the unit consists of rocky ridges and forest in the western half of the WMU. WMU 304 is good habitat for moose, elk, and both deer species. WMU 304 was not surveyed specifically for deer or moose in the past but has 3 previous surveys for elk in the past 25 years in 2007,2015 and 2020.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 831.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": 664.8,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 1219,
+          "average_group_size": 8.9,
+          "group_size_range": [
+            1.0,
+            72.0
+          ],
+          "density_per_km2": 1.83,
+          "abundance_estimate": 2828,
+          "confidence_interval_90": null,
+          "male_per_100_female": 62.0,
+          "juvenile_per_100_female": 47.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Due to the timing of the survey being mid-February, a small amount of antler drop had occurred which will affect these ratios.",
+          "derived_effort_km_per_expected_animal": 0.546,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 304,
+                "quota": 150,
+                "season_dates": "Oct 25-Nov 30",
+                "min_points": 4,
+                "guaranteed_points": 5,
+                "chance_at_min_points_percent": 5.9,
+                "difficulty": "medium",
+                "raw_point_rows_summary": "5+:100, 4:5.9, 3-0:0",
+                "notes": "Antlered Mule Deer"
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 931,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.4,
+          "abundance_estimate": 2160,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "White-tailed deer were not classified into sex and age cohorts due to extensive antler drop having occurred by the time the survey was conducted.",
+          "derived_effort_km_per_expected_animal": 0.714,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 177,
+          "average_group_size": 1.8,
+          "group_size_range": [
+            1.0,
+            7.0
+          ],
+          "density_per_km2": 0.26,
+          "abundance_estimate": 405,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Moose were generally counted anecdotally in past surveys for a minimum total count, which likely greatly underestimated the population.",
+          "derived_effort_km_per_expected_animal": 3.846,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "elk": {
+          "observed_count": 1497,
+          "minimum_total_count": null,
+          "average_group_size": 59.0,
+          "group_size_range": [
+            1.0,
+            242.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 10.0,
+          "juvenile_per_100_female": 24.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "rocky ridges and forest in the western half of the WMU",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "305": {
+      "wmu_id": "305",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-305-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 305 is located in the South Porcupine Hills, north of Pincher Creek. It is a large WMU that is bordered by Highways 3, 22, 2 and secondary road 520. P ortions of the unit lie within the montane, foothills fescue and mixed-grass natural subregions of Alberta. The Oldman River creates coulee habitat along the southern portion of the WMU. Once amongst the Porcupine Hills, rocky ridges and forest form a bulk of the western half of the WMU while patchy Douglas fir, poplar and shrub communities located within rough fescue grassland shape the east. Coulee draws an d v arying aspects along the eastern edge of the WMU, where the hills convene with open grassland. WMU 305 was recently surveyed for Mule Deer in 2000 and 2010 using the Random Stratified Block method and r ecently surveyed for a minimum total count of elk in 2007,2015 and 2020.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 1254.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": 1003.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 2291,
+          "average_group_size": 12.0,
+          "group_size_range": [
+            1.0,
+            69.0
+          ],
+          "density_per_km2": 2.7,
+          "abundance_estimate": 5717,
+          "confidence_interval_90": null,
+          "male_per_100_female": 52.0,
+          "juvenile_per_100_female": 52.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": "The 2025 population estimate represents a 20% increase from t he last aerial ungulate survey population estimate for mule deer within WMU 305 (conducted in 2010).",
+          "trend_direction": "increase",
+          "trend_percent": 20.0,
+          "trend_reason": "Due to the timing of the survey being m id-February, a small amount of antler drop had oc curred which will affect these ratios.",
+          "derived_effort_km_per_expected_animal": 0.37,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 305,
+                "quota": 191,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 5,
+                "guaranteed_points": 6,
+                "chance_at_min_points_percent": 51.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "6:100, 5:51, 4-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 361,
+          "average_group_size": 8.0,
+          "group_size_range": [
+            1.0,
+            33.0
+          ],
+          "density_per_km2": 0.39,
+          "abundance_estimate": 837,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "White-tailed deer were not classified into sex and age cohorts due to extensive antler drop having occurred by the time the survey was conducted.",
+          "derived_effort_km_per_expected_animal": 2.564,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 32,
+          "average_group_size": 1.1,
+          "group_size_range": [
+            1.0,
+            2.0
+          ],
+          "density_per_km2": 0.037,
+          "abundance_estimate": 80,
+          "confidence_interval_90": null,
+          "male_per_100_female": 16.0,
+          "juvenile_per_100_female": 24.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Moose have been generally counted anecdotally in past surveys for a minimum total count which likely greatly underestimated the previous population estimates.",
+          "derived_effort_km_per_expected_animal": 27.027,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "elk": {
+          "observed_count": 1014,
+          "minimum_total_count": null,
+          "average_group_size": 46.0,
+          "group_size_range": [
+            1.0,
+            369.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 16.0,
+          "juvenile_per_100_female": 24.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "WMU 305 is located in the South Porcupine Hills, north of Pincher Creek. It is a large WMU that is bordered by Highways 3, 22, 2 and secondary road 520. P ortions of the unit lie within the montane, foothills fescue and mixed-grass natural subregions of Alberta. The Oldman River creates coulee habitat along the southern portion of the WMU. Once amongst the Porcupine Hills, rocky ridges and forest form a bulk of the western half of the WMU while patchy Douglas fir, poplar and shrub communities lo",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "306": {
+      "wmu_id": "306",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-306-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 306 is located northwest of Lundbreck, Alberta. It is bordered by highways 22 and 3, the Maycroft Road on the north and the Kananaskis road on the west. It consists of foothills and mountain habitats. WMU 306 has good quality habitat for moose, elk, and mule deer. WMU 306 was also surveyed specifically for elk in 2007,2015 and 2020. Past surveys did not calculate population densities or estimates for deer species or moose.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 224.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": 180.0,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 623,
+          "average_group_size": 11.0,
+          "group_size_range": [
+            1.0,
+            47.0
+          ],
+          "density_per_km2": 3.47,
+          "abundance_estimate": 1453,
+          "confidence_interval_90": null,
+          "male_per_100_female": 44.0,
+          "juvenile_per_100_female": 41.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Due to the timing of the survey being mid February, a small amount of antler drop had occurred which will affect these ratios.",
+          "derived_effort_km_per_expected_animal": 0.288,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 306,
+                "quota": 36,
+                "season_dates": "Sep 01-Nov 30",
+                "min_points": 7,
+                "guaranteed_points": 8,
+                "chance_at_min_points_percent": 61.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "8+:100, 7:61, 6-0:0",
+                "notes": "Antlered Mule Deer"
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 211,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.17,
+          "abundance_estimate": 492,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "White-tailed deer were not classified into sex and age cohorts due to extensive antler drop having occurred by the time the survey was conducted.",
+          "derived_effort_km_per_expected_animal": 0.855,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 36,
+          "average_group_size": 1.86,
+          "group_size_range": [
+            1.0,
+            4.0
+          ],
+          "density_per_km2": 0.2,
+          "abundance_estimate": 84,
+          "confidence_interval_90": null,
+          "male_per_100_female": 5.0,
+          "juvenile_per_100_female": 67.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Moose were generally counted anecdotally in past surveys for a minimum total count, which likely greatly underestimated the population.",
+          "derived_effort_km_per_expected_animal": 5.0,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "elk": {
+          "observed_count": 328,
+          "minimum_total_count": null,
+          "average_group_size": 59.0,
+          "group_size_range": [
+            1.0,
+            242.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 10.0,
+          "juvenile_per_100_female": 20.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "foothills and mountain habitats",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "308": {
+      "wmu_id": "308",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-308-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "WMU 308 is located in southwest, Alberta. It is bordered by highways 22 and 532, the Maycroft Road on the south and the Kananaskis road on the west. It consists of foothills and mountain habitats. WMU 308 has good quality habitat for moose, elk, and mule deer. WMU 308 was also surveyed specifically for elk in 2007,2015 and 2020. Past surveys did not calculate population densities or estimates for deer species or moose.",
+      "survey": {
+        "method": "transect",
+        "effort_km": 353.5,
+        "coverage_percent": null,
+        "area_surveyed_km2": 282.8,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "mule_deer": {
+          "observed_count": 195,
+          "average_group_size": 6.7,
+          "group_size_range": [
+            1.0,
+            31.0
+          ],
+          "density_per_km2": 0.69,
+          "abundance_estimate": 451,
+          "confidence_interval_90": null,
+          "male_per_100_female": 48.0,
+          "juvenile_per_100_female": 48.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Due to the timing of the survey being mid-February, a small amount of antler drop had occurred which will affect these ratios.",
+          "derived_effort_km_per_expected_animal": 1.449,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 308,
+                "quota": 12,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 7,
+                "guaranteed_points": 8,
+                "chance_at_min_points_percent": 12.0,
+                "difficulty": "hard",
+                "raw_point_rows_summary": "8+:100, 7:12, 6-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "white_tailed_deer": {
+          "observed_count": 319,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.13,
+          "abundance_estimate": 738,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "White-tailed deer were not classified into sex and age cohorts due to extensive antler drop having occurred by the time the survey was conducted.",
+          "derived_effort_km_per_expected_animal": 0.885,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 75,
+          "average_group_size": 1.77,
+          "group_size_range": [
+            1.0,
+            3.0
+          ],
+          "density_per_km2": 0.27,
+          "abundance_estimate": 174,
+          "confidence_interval_90": null,
+          "male_per_100_female": 38.0,
+          "juvenile_per_100_female": 45.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "Moose were generally counted anecdotally in past surveys for a minimum total count, which likely greatly underestimated the population.",
+          "derived_effort_km_per_expected_animal": 3.704,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "elk": {
+          "observed_count": 328,
+          "minimum_total_count": null,
+          "average_group_size": 59.0,
+          "group_size_range": [
+            1.0,
+            242.0
+          ],
+          "density_per_km2": null,
+          "abundance_estimate": null,
+          "confidence_interval_90": null,
+          "male_per_100_female": 10.0,
+          "juvenile_per_100_female": 20.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "unknown_elk_section_from_visible_snippet",
+                "hunt_code": 792,
+                "quota": 97,
+                "season_dates": "Oct 25 2025-Dec 20 2025",
+                "min_points": 2,
+                "guaranteed_points": 3,
+                "chance_at_min_points_percent": 63.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "3+:100, 2:63, 1-0:0",
+                "notes": null
+              },
+              {
+                "section": "unknown_elk_section_from_visible_snippet",
+                "hunt_code": 793,
+                "quota": 98,
+                "season_dates": "Dec 21 2025-Feb 28 2026",
+                "min_points": 1,
+                "guaranteed_points": 2,
+                "chance_at_min_points_percent": 70.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "2+:100, 1:70, 0:0",
+                "notes": null
+              },
+              {
+                "section": "antlerless_elk_draw",
+                "hunt_code": 792,
+                "quota": 97,
+                "season_dates": "Oct 25-Dec 20",
+                "min_points": 2,
+                "guaranteed_points": 3,
+                "chance_at_min_points_percent": 63.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "3+:100, 2:63, 1-0:0",
+                "notes": "Late Season Antlerless Elk"
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "foothills and mountain habitats",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "310": {
+      "wmu_id": "310",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-310-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "Aerial surveys are conducted periodically to obtain wildlife population estimates which assist biologists with species conservation management decisions. Wildlife Management Unit (WMU) 310 has historically been flown primary for large elk herds through a winter range survey, and not in a transect or block survey. This means that WMU scale population estimates have not been calculated from survey results before for moose, mule deer, or white-tailed deer, and this is a first for this WMU. The boundaries for the WMU are irregular shaped and generally follows landscape features such as watercourses, as well as anthropogenic features such as highways and forest reserve boundaries. The boundary of WMU 310 borders the Bow \u2013 Crow forest reserve to the west, secondary Highway 532 in the south, Highway 541 in the north, and Highway 2 to the east; however, only a small fraction (approximately 150 km\u00b2) of WMU 310 has been surveyed for wintering elk in the past. The landscape of WMUs 310 is rolling and lightly forested, lying within the Foothills Fescue, Foothills Parkland, and Montane natural subregions (Natural Regions Committee 2006). The WMU is dominated by acreages and small farming operat",
+      "survey": {
+        "method": "transect",
+        "effort_km": null,
+        "coverage_percent": null,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "white_tailed_deer": {
+          "observed_count": 1135,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.79,
+          "abundance_estimate": 1906,
+          "confidence_interval_90": null,
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 0.559,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "mule_deer": {
+          "observed_count": 746,
+          "density_per_km2": 0.73,
+          "abundance_estimate": 781,
+          "male_per_100_female": 32.0,
+          "juvenile_per_100_female": 59.0,
+          "classified_counts": {
+            "male": 64,
+            "female": 194,
+            "juvenile": 115
+          },
+          "derived_effort_km_per_expected_animal": 1.37,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "minimum_total_count": null,
+          "average_group_size": null,
+          "group_size_range": null,
+          "confidence_interval_90": null,
+          "male_size_classification": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_mule_deer_draw",
+                "hunt_code": 310,
+                "quota": 69,
+                "season_dates": "Nov 01 2025-Nov 30 2025",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 71.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4+:100, 3:71, 2-0:0",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "moose": {
+          "observed_count": 89,
+          "density_per_km2": 0.14,
+          "abundance_estimate": 148,
+          "male_per_100_female": 53.0,
+          "juvenile_per_100_female": 35.0,
+          "classified_counts": {
+            "male": 24,
+            "female": 45,
+            "juvenile": 16
+          },
+          "derived_effort_km_per_expected_animal": 7.143,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "West of highway 22, the population was healthy, though there were several observations of animals with tick-related hair loss.",
+          "minimum_total_count": null,
+          "average_group_size": null,
+          "group_size_range": null,
+          "confidence_interval_90": null,
+          "male_size_classification": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlerless_moose_draw",
+                "hunt_code": 310,
+                "quota": 25,
+                "season_dates": "Sep 01 2025-Nov 30 2025",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 27.0,
+                "difficulty": "moderate",
+                "raw_point_rows_summary": "4+:100, 3:27, 2-0:0",
+                "notes": "Only antlerless row was visible in the uploaded snippets."
+              }
+            ],
+            "na_reason": null
+          }
+        },
+        "elk": {
+          "observed_count": 838,
+          "minimum_total_count": 838,
+          "density_per_km2": 0.79,
+          "abundance_estimate": 838,
+          "male_per_100_female": 18.0,
+          "juvenile_per_100_female": 22.0,
+          "classified_counts": {
+            "male": 108,
+            "female": 584,
+            "juvenile": 129
+          },
+          "male_size_classification": {
+            "small": 44,
+            "medium": 24,
+            "large": 3
+          },
+          "derived_effort_km_per_expected_animal": 1.266,
+          "trend_summary": "The elk population has steadily increased since the last survey in 2020 and is currently at the highest level observed in the unit.",
+          "trend_direction": "increase",
+          "trend_percent": null,
+          "trend_reason": "Several groups on the northern and southern boundaries of this unit share winter range between WMUs.",
+          "average_group_size": null,
+          "group_size_range": null,
+          "confidence_interval_90": null,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "unknown_elk_section_from_visible_snippet",
+                "hunt_code": 749,
+                "quota": 217,
+                "season_dates": "Dec 21 2025-Feb 28 2026",
+                "min_points": 0,
+                "guaranteed_points": 0,
+                "chance_at_min_points_percent": 100.0,
+                "difficulty": "easy",
+                "raw_point_rows_summary": "0+:100",
+                "notes": null
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "Aerial surveys are conducted periodically to obtain wildlife population estimates which assist biologists with species conservation management decisions. Wildlife Management Unit (WMU) 310 has historically been flown primary for large elk herds through a winter range survey, and not in a transect or block survey. This means that WMU scale population estimates have not been calculated from survey results before for moose, mule deer, or white-tailed deer, and this is a first for this WMU. The boun",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "350": {
+      "wmu_id": "350",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-350-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "Wildlife Management Unit (WMU) 350 is located in north-central Alberta, covering an area of 6224 km2. WMU 350 is bounded by Highway 33 to the west, The Athabasca River to the south and east, and the Lesser Slave Lake and River to the north (Fig. 1). The last population estimate of moose in this WMU was last completed in 2020 where the population had grown by 58.8% since the previous 2015 survey, recovering towards historic high densities following a period between 2002 and 2015 during which the population had declined by 73%. F igure 1. Wildlife Management Unit WMU350 in north central Alberta. Slave Lake and Nipisi woodland caribou population recovery WMU 350 includes a portion of the Slave Lake caribou population unit, along the western bank of the Athabasca River (Fig. 2). Annual wolf reductions were initiated in 2023 in response to declines in these caribou populations and have continued. While the declines in these caribou populations have slowed following wolf control, avoiding extirpation, the wolf control measures also reduce predation in deer and moose populations. This reduction in predation pressure on moose and deer can result in the growth of alternative prey population",
+      "survey": {
+        "method": "distance_sampling",
+        "effort_km": null,
+        "coverage_percent": 18.8,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "moose": {
+          "observed_count": 277,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.417,
+          "abundance_estimate": 2593,
+          "confidence_interval_90": [
+            0.36,
+            0.59
+          ],
+          "male_per_100_female": 47.1,
+          "juvenile_per_100_female": 44.8,
+          "classified_counts": null,
+          "male_size_classification": {
+            "small": 11,
+            "medium": 3
+          },
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "/rub typically associated with winter tick was low with only 6 individuals (2.",
+          "derived_effort_km_per_expected_animal": 2.398,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "Wildlife Management Unit (WMU) 350 is located in north-central Alberta, covering an area of 6224 km2. WMU 350 is bounded by Highway 33 to the west, The Athabasca River to the south and east, and the Lesser Slave Lake and River to the north (Fig. 1). The last population estimate of moose in this WMU was last completed in 2020 where the population had grown by 58.8% since the previous 2015 survey, recovering towards historic high densities following a period between 2002 and 2015 during which the ",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "504": {
+      "wmu_id": "504",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-504-2025.pdf",
+      "year": 2025,
+      "area_km2": 2704,
+      "background_summary": "Wildlife Management Unit 504 (WMU) covers an area of 2,704 km\u00b2 and is located in north-central Alberta, in the Boreal Central Mixedwood and Dry Mixedwood natural subregions. The landcover in the area is dominated by broadleaf forests (47%). Agriculture (17%) is the predominate land use and is concentrated in the southern part of the unit. Approximately 530 km\u00b2 of land within WMU 504 has a provincial land use designation as \u2018Key Wildlife Biodiversity Zone\u2019, including portions of the White Earth Valley and Amisk River area. Given their localized size and distribution, these zones play a disproportionately large role in maintaining overall productivity of regional ungulate populations and are a source of biodiversity. These zones ensure that significant proportions of the breeding population survive to the next year (Environment and Sustainable Resource Development 2015). The objective of the 2025 aerial ungulate survey was to assess the status of ungulate populations (moose, white-tailed deer, and mule deer if adequate observations were obtained) in WMU 504 by estimating abundance, density, and the age-sex composition.",
+      "survey": {
+        "method": "distance_sampling",
+        "effort_km": 519.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "white_tailed_deer": {
+          "observed_count": 256,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.983,
+          "abundance_estimate": 2658,
+          "confidence_interval_90": [
+            0.723,
+            1.337
+          ],
+          "male_per_100_female": 45.0,
+          "juvenile_per_100_female": 66.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "The estimated buck:doe:fawn ratio was 45:100:66, however, antler cast was assumed to be significant and the buck ratio is likely underestimated, while the fawn and doe ratio is underreported as deer tended to be in large groups during the survey that made individual classifications difficult.",
+          "derived_effort_km_per_expected_animal": 1.017,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 217,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.624,
+          "abundance_estimate": 1688,
+          "confidence_interval_90": [
+            0.509,
+            0.765
+          ],
+          "male_per_100_female": 53.0,
+          "juvenile_per_100_female": 45.0,
+          "classified_counts": {
+            "male": 57,
+            "female": 108,
+            "juvenile": 48
+          },
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 1.603,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "broadleaf forests (47%)",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "506": {
+      "wmu_id": "506",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-506-2025.pdf",
+      "year": 2025,
+      "area_km2": 2189,
+      "background_summary": "Wildlife Management Unit 506 (WMU) covers an area of 2,189 km\u00b2 and is located in north-central Alberta, in the Boreal Dry Mixedwood natural subregion. Agriculture is the predominant land use (50%) in WMU 506, with broadleaf forests interspersed amongst coniferous forests, shrubland, and grasslands. Approximately 450 km\u00b2 of land in the Tawatinaw River valley has a provincial land use designation as \u2018Key Wildlife Biodiversity Zone\u2019. Given their localized size and distribution, Key Wildlife Biodiversity Zones play a disproportionately large role in maintaining overall productivity of regional ungulate populations and are a source of biodiversity. These zones ensure that significant proportions of the breeding population survive to the next year (Environment and Sustainable Resource Development 2015). The objective of the 2025 aerial ungulate survey was to assess the status of ungulate populations (moose, white-tailed deer, and mule deer if adequate observations were obtained) in WMU 506 by estimating abundance, density, and the age-sex composition.",
+      "survey": {
+        "method": "distance_sampling",
+        "effort_km": 406.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "white_tailed_deer": {
+          "observed_count": 203,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.17,
+          "abundance_estimate": 2564,
+          "confidence_interval_90": [
+            0.8,
+            1.716
+          ],
+          "male_per_100_female": 125.0,
+          "juvenile_per_100_female": 187.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "The estimated buck:doe:fawn ratio was 125:100:187, however, antler cast was assumed to be significant and the buck ratio is likely underestimated, while the fawn and doe ratio is underreported as deer tended to be in large groups during the survey that made individual classifications difficult.",
+          "derived_effort_km_per_expected_animal": 0.855,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 105,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.341,
+          "abundance_estimate": 745,
+          "confidence_interval_90": [
+            0.258,
+            0.45
+          ],
+          "male_per_100_female": 48.0,
+          "juvenile_per_100_female": 37.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 2.933,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "50% in WMU 506, with broadleaf forests interspersed amongst coniferous forests, shrubland, and grasslands",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "509": {
+      "wmu_id": "509",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-509-2025.pdf",
+      "year": 2025,
+      "area_km2": 2536,
+      "background_summary": "Wildlife Management Unit 509 (WMU) covers an area of 2,536 km\u00b2 and is located in north-central Alberta, in the Boreal Central Mixedwood and Boreal Dry Mixedwood natural subregions. F orests cover most of the landscape (60%), while agriculture (20%) is predominantly in the central and southern area. The Athabasca River flows northeasterly through the middle of WMU 509, with La Biche River Wildland in the Northeast corner. Approximately 460 km\u00b2 has a provincial land use designation as \u2018Key Wildlife Biodiversity Zone\u2019, primarily along the Athabasca River. Given their localized size and distribution, these zones play a disproportionately large role in maintaining overall productivity of regional ungulate populations and are a source of biodiversity. These zones ensure that significant proportions of the breeding population survive to the next year (Environment and Sustainable Resource Development 2015). The objective of the 2025 aerial ungulate survey was to assess the status of ungulate populations (moose, white-tailed deer, and mule deer if adequate observations were obtained) in WMU 509 by estimating abundance, density, and the age-sex composition.",
+      "survey": {
+        "method": "distance_sampling",
+        "effort_km": 606.0,
+        "coverage_percent": null,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "white_tailed_deer": {
+          "observed_count": 280,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 1.12,
+          "abundance_estimate": 2840,
+          "confidence_interval_90": [
+            0.856,
+            1.466
+          ],
+          "male_per_100_female": 27.0,
+          "juvenile_per_100_female": 109.0,
+          "classified_counts": null,
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "The buck ratio is likely underestimated, while the fawn and doe ratio is underreported as antlerless deer that were not accompanied by a fawn(s) were recorded as unclassified adults.",
+          "derived_effort_km_per_expected_animal": 0.893,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        },
+        "moose": {
+          "observed_count": 79,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.336,
+          "abundance_estimate": 852,
+          "confidence_interval_90": [
+            0.245,
+            0.46
+          ],
+          "male_per_100_female": 25.0,
+          "juvenile_per_100_female": 36.0,
+          "classified_counts": {
+            "male": 12,
+            "female": 48,
+            "juvenile": 17
+          },
+          "male_size_classification": null,
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": null,
+          "derived_effort_km_per_expected_animal": 2.976,
+          "draw_summary": {
+            "available_draws": [
+              {
+                "section": "antlered_moose_draw",
+                "hunt_code": 509,
+                "quota": 40,
+                "season_dates": "Sep 24-Nov 30",
+                "min_points": 3,
+                "guaranteed_points": 4,
+                "chance_at_min_points_percent": 1.4,
+                "difficulty": "medium",
+                "raw_point_rows_summary": "4+:100, 3:1.4, 2-0:0",
+                "notes": "Antlered Moose"
+              }
+            ],
+            "na_reason": null
+          }
+        }
+      },
+      "terrain": {
+        "description": "Wildlife Management Unit 509 (WMU) covers an area of 2,536 km\u00b2 and is located in north-central Alberta, in the Boreal Central Mixedwood and Boreal Dry Mixedwood natural subregions. F orests cover most of the landscape (60%), while agriculture (20%) is predominantly in the central and southern area. The Athabasca River flows northeasterly through the middle of WMU 509, with La Biche River Wildland in the Northeast corner. Approximately 460 km\u00b2 has a provincial land use designation as \u2018Key Wildlif",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    },
+    "511": {
+      "wmu_id": "511",
+      "source_pdf": "epa-aerial-wildlife-survey-report-wmu-511-2025.pdf",
+      "year": 2025,
+      "area_km2": null,
+      "background_summary": "Wildlife Management Unit (WMU) 511 is located in north-central Alberta, covering an area of 5798 km2. Bounded by the Town of Slave Lake to the west and Wabasca to the north, WMU511 is bordered by highways 764 north, highway 813 east, the Athabasca River in the southwest and in the southeast the township baseline between TWP 71 and 72 and the boundary of Calling Lake towards highway 813 (Fig. 1). The last population estimate of moose in this WMU was completed in 2014 where a population decline of 64% (90%CI -49\u201479) had been reported between the most recent surveys in 2003 and 2014, with an estimated annual population growth rate of 0.91 (90%CI 0.87-0.94) during the interval between surveys. F igure 1. Wildlife Management Unit WMU511 in north central Alberta. S lave Lake and Nipisi woodland caribou population recovery This WMU includes portions of two local population units of boreal woodland caribou, the Slave Lake and Nipisi populations (Fig. 2). The majority of occupancy of the Slave Lake population has been constrained to the WMU511 portion of the Slave Lake range, east of the town of Slave Lake. While the majority of the area for Nipisi local population unit occurs in WMU542 to ",
+      "survey": {
+        "method": "distance_sampling",
+        "effort_km": null,
+        "coverage_percent": 20.6,
+        "area_surveyed_km2": null,
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      },
+      "species": {
+        "moose": {
+          "observed_count": 180,
+          "average_group_size": null,
+          "group_size_range": null,
+          "density_per_km2": 0.257,
+          "abundance_estimate": 1488,
+          "confidence_interval_90": [
+            0.55,
+            0.8
+          ],
+          "male_per_100_female": null,
+          "juvenile_per_100_female": null,
+          "classified_counts": null,
+          "male_size_classification": {
+            "small": 21,
+            "medium": 5
+          },
+          "trend_summary": null,
+          "trend_direction": null,
+          "trend_percent": null,
+          "trend_reason": "The prevalence of hair loss/rub typically associated with winter tick was low with only 3 individuals (1.",
+          "derived_effort_km_per_expected_animal": 3.891,
+          "draw_summary": {
+            "available_draws": [],
+            "na_reason": "no matching draw row found in uploaded draw summary PDFs"
+          }
+        }
+      },
+      "terrain": {
+        "description": "Wildlife Management Unit (WMU) 511 is located in north-central Alberta, covering an area of 5798 km2. Bounded by the Town of Slave Lake to the west and Wabasca to the north, WMU511 is bordered by highways 764 north, highway 813 east, the Athabasca River in the southwest and in the southeast the township baseline between TWP 71 and 72 and the boundary of Calling Lake towards highway 813 (Fig. 1). The last population estimate of moose in this WMU was completed in 2014 where a population decline of",
+        "mean_average_elevation_m": "non-public-data available",
+        "hydro_water_percent": "non-public-data available"
+      }
+    }
+  }
+}
