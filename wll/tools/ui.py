@@ -642,9 +642,117 @@ if view_mode == "Basic":
         "Ranking is based on highest success chance and lower effort. "
         "Green = success chance, Red = effort."
     )
+    st.markdown(
+        """
+<style>
+.wll-basic-msg {
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  margin: 0.35rem 0 0.45rem;
+}
+.wll-basic-msg h4 {
+  margin: 0 0 0.22rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+.wll-basic-msg p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #ffffff;
+}
+.wll-basic-msg-success {
+  background: #1f9d55;
+}
+.wll-basic-msg-effort {
+  background: #d64545;
+}
+</style>
+<div class="wll-basic-msg wll-basic-msg-success">
+  <h4>Success</h4>
+  <p>
+    Higher score means better odds of finding animals.
+    It mostly comes from density (animals per km²), abundance, and observed count.
+  </p>
+</div>
+<div class="wll-basic-msg wll-basic-msg-effort">
+  <h4>Effort</h4>
+  <p>
+    Higher score means a harder hunt.
+    It reflects expected walking distance plus search pressure from low density and large area per animal.
+  </p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+<style>
+.wll-basic-card {
+  border: 1px solid rgba(49, 51, 63, 0.15);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  margin: 0.45rem 0 0.7rem;
+}
+.wll-basic-row {
+  margin: 0.45rem 0 0.65rem;
+}
+.wll-basic-row-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.wll-basic-bar-label {
+  font-size: 0.75rem;
+  color: rgba(49, 51, 63, 0.78);
+  margin-bottom: 0.12rem;
+}
+.wll-basic-track {
+  width: 100%;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(49, 51, 63, 0.1);
+  overflow: hidden;
+}
+.wll-basic-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #fff;
+  font-size: 0.73rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding-right: 0.4rem;
+  min-width: 3.3rem;
+  box-sizing: border-box;
+}
+.wll-basic-success {
+  background: #1f9d55;
+}
+.wll-basic-effort {
+  background: #d64545;
+}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
 
     species_labels = sorted(df["species_label"].dropna().unique().tolist())
-    for species_label in species_labels:
+    show_all_species = st.checkbox(
+        "Show all species (can be long on mobile)",
+        value=False,
+    )
+    selected_species_basic = st.selectbox(
+        "Species",
+        species_labels,
+        index=0,
+        disabled=show_all_species,
+    )
+    species_to_render = species_labels if show_all_species else [selected_species_basic]
+
+    for species_label in species_to_render:
         sp_rank = (
             df[df["species_label"] == species_label]
             .sort_values(
@@ -662,43 +770,34 @@ if view_mode == "Basic":
         sp_rank["rank_label"] = sp_rank.apply(
             lambda r: f"#{int(r.name) + 1} - WMU {r['wmu_id']}", axis=1
         )
-        sp_rank = sp_rank.sort_values("global_success_score", ascending=True)
-
-        fig = go.Figure()
-        fig.add_trace(
-            go.Bar(
-                y=sp_rank["rank_label"],
-                x=sp_rank["global_success_score"],
-                orientation="h",
-                name="Success chance",
-                marker_color="#1f9d55",
-                text=[f"{v:.1f}%" for v in sp_rank["global_success_score"]],
-                textposition="inside",
-            )
+        container = st.container() if not show_all_species else st.expander(
+            f"{species_label} - Top 5 WMUs", expanded=False
         )
-        fig.add_trace(
-            go.Bar(
-                y=sp_rank["rank_label"],
-                x=sp_rank["global_effort_score"],
-                orientation="h",
-                name="Effort",
-                marker_color="#d64545",
-                text=[f"{v:.1f}%" for v in sp_rank["global_effort_score"]],
-                textposition="inside",
-            )
-        )
-        fig.update_layout(
-            barmode="group",
-            title=f"{species_label} - Top 5 WMUs",
-            xaxis_title="Score (%)",
-            yaxis_title="",
-            xaxis=dict(range=[0, 100]),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02,
-                        xanchor="right", x=1),
-            margin=dict(l=10, r=10, t=56, b=10),
-            height=320,
-        )
-        st.plotly_chart(fig, width="stretch")
+        with container:
+            if not show_all_species:
+                st.markdown(f"**{species_label} - Top 5 WMUs**")
+            for _, row in sp_rank.iterrows():
+                success_pct = float(np.clip(row["global_success_score"], 0, 100))
+                effort_pct = float(np.clip(row["global_effort_score"], 0, 100))
+                rank_label = _html_escape(str(row["rank_label"]))
+                st.markdown(
+                    f"""
+<div class="wll-basic-card">
+  <div class="wll-basic-row">
+    <div class="wll-basic-row-title">{rank_label}</div>
+    <div class="wll-basic-bar-label">Success chance</div>
+    <div class="wll-basic-track">
+      <div class="wll-basic-fill wll-basic-success" style="width:{success_pct:.1f}%;">{success_pct:.1f}%</div>
+    </div>
+    <div class="wll-basic-bar-label" style="margin-top:0.32rem;">Effort</div>
+    <div class="wll-basic-track">
+      <div class="wll-basic-fill wll-basic-effort" style="width:{effort_pct:.1f}%;">{effort_pct:.1f}%</div>
+    </div>
+  </div>
+</div>
+""",
+                    unsafe_allow_html=True,
+                )
 
     st.stop()
 
@@ -1055,6 +1154,37 @@ fig.update_layout(
     yaxis_title="Score",
 )
 st.plotly_chart(fig, width="stretch")
+
+# -----------------------------
+# Plain-language score guide
+# -----------------------------
+st.markdown("## What these scores mean (plain English)")
+st.markdown(
+    """
+**Success score (green):** "How likely you are to find animals in this WMU/species."
+
+- Higher score = better odds.
+- Built from animal data, not from how hard the walk is.
+- Main ingredients:
+  - **Density (45%)**: more animals per km² helps the most.
+  - **Abundance (25%)**: total number of animals helps.
+  - **Observed count (20%)**: how many were actually seen helps.
+  - **Male ratio (5%)** and **juvenile ratio (5%)**: small adjustments.
+- Simple rule: **higher success score means better chances**.
+
+**Effort score (red):** "How hard it may be to get an opportunity."
+
+- Higher score = more work/harder hunt.
+- Built from 3 pressure signals:
+  - **Hike component (55%)**: your expected walk distance per animal.
+  - **Density pressure (30%)**: lower animal density means more searching.
+  - **Area pressure (15%)**: bigger area per estimated animal means more ground to cover.
+- This is scaled to a practical **35-100** range.
+- Simple rule: **lower effort score means easier conditions**.
+
+**Quick read:** best targets are usually **high success + low effort**.
+"""
+)
 
 # -----------------------------
 # Footnotes
