@@ -1,19 +1,18 @@
 import base64
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 
 # -----------------------------
 # Configuration
 # -----------------------------
-DATA_PATH = Path("database/alberta_wmu_survey_database_2025_2.json")
+DATA_PATH = Path("database/alberta_wmu_survey_database_2025_with_draws.json")
 APP_TITLE = "Wild Logic Lab"
 APP_SUBTITLE = "Alberta Public Aereal Survey - 2025"
 LOGO_PATH = "docs/assets/logo2-r.png"
@@ -59,6 +58,185 @@ def safe_float(value) -> Optional[float]:
         return None
 
 
+def _first_non_empty(*values):
+    for value in values:
+        if value is None:
+            continue
+        if isinstance(value, str) and not value.strip():
+            continue
+        return value
+    return None
+
+
+def _normalize_draw_required(value) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    raw = str(value).strip().lower()
+    if raw in {"yes", "y", "true", "required", "draw", "draw required", "1"}:
+        return "Yes"
+    if raw in {"no", "n", "false", "not required", "general", "over the counter", "0"}:
+        return "No"
+    return str(value).strip()
+
+
+def _derive_draw_fields_from_summary(sp: Dict) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    draw_summary = sp.get("draw_summary")
+    if not isinstance(draw_summary, dict):
+        return (None, None, None)
+
+    available_draws = draw_summary.get("available_draws")
+    if not isinstance(available_draws, list):
+        available_draws = []
+    available_draws = [d for d in available_draws if isinstance(d, dict)]
+
+    if available_draws:
+        draw_required = "Yes"
+    else:
+        draw_required = "No" if draw_summary.get("na_reason") else None
+
+    draw_classes: List[str] = []
+    difficulties: List[str] = []
+    for draw in available_draws:
+        section = str(draw.get("section") or "").lower()
+        section_norm = section.replace("-", "_").replace(" ", "_")
+
+        # Draw class is inferred directly from section labels in draw_summary:
+        # e.g., antlered_*, antlerless_*, calf_* (including common typos).
+        if "calf" in section_norm:
+            draw_classes.append("calf")
+        if (
+            "antlerless" in section_norm
+            or "antereless" in section_norm
+            or "antler_les" in section_norm
+        ):
+            draw_classes.append("antlerless")
+        if "antlered" in section_norm or "anterleed" in section_norm:
+            draw_classes.append("antlered")
+
+        difficulty = draw.get("difficulty")
+        if difficulty is not None and str(difficulty).strip():
+            difficulties.append(str(difficulty).strip().replace("_", " "))
+
+    sex_value = None
+    if draw_classes:
+        unique_classes = list(dict.fromkeys(draw_classes))
+        if len(unique_classes) == 1:
+            sex_value = unique_classes[0]
+        else:
+            sex_value = " / ".join(unique_classes)
+
+    complexity_value = None
+    if difficulties:
+        unique_difficulties = list(dict.fromkeys(difficulties))
+        complexity_value = " / ".join(unique_difficulties)
+
+    return (draw_required, sex_value, complexity_value)
+
+
+def _collect_species_draw_entries(sp: Dict) -> List[Dict[str, str]]:
+    draw_summary = sp.get("draw_summary")
+    if not isinstance(draw_summary, dict):
+        return []
+
+    available_draws = draw_summary.get("available_draws")
+    if not isinstance(available_draws, list):
+        return []
+
+    entries: List[Dict[str, str]] = []
+    for draw in available_draws:
+        if not isinstance(draw, dict):
+            continue
+        # Support both parser naming variants:
+        # quote/quota and num_points/min_points.
+        quote_value = _first_non_empty(draw.get("quote"), draw.get("quota"))
+        num_points_value = _first_non_empty(draw.get("num_points"), draw.get("min_points"))
+        entry = {
+            "quote": format_detail_value(quote_value),
+            "num_points": format_detail_value(num_points_value),
+            "guaranteed_points": format_detail_value(draw.get("guaranteed_points")),
+            "chance_at_min_points_percent": format_detail_value(
+                draw.get("chance_at_min_points_percent")
+            ),
+            "difficulty": format_detail_value(draw.get("difficulty")),
+        }
+        entries.append(entry)
+    return entries
+
+
+def _derive_wmu_area_from_background(background_summary: Optional[str]) -> Optional[float]:
+    if not background_summary:
+        return None
+    text = background_summary.replace("\n", " ")
+    patterns = [
+        r"covers an area of ([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)",
+        r"covering an area of ([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)",
+        r"area of (?:approximately )?([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text, flags=re.IGNORECASE)
+        if m:
+            return safe_float(m.group(1).replace(",", ""))
+    return None
+
+
+def _derive_surveyed_area_from_background(background_summary: Optional[str]) -> Optional[float]:
+    if not background_summary:
+        return None
+    text = background_summary.replace("\n", " ")
+    patterns = [
+        r"approximately\s*([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)[^\.]{0,80}surveyed",
+        r"([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)[^\.]{0,80}has been surveyed",
+        r"surveyed[^\.]{0,80}([\d,]+(?:\.\d+)?)\s*km(?:\s*2|²)",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text, flags=re.IGNORECASE)
+        if m:
+            return safe_float(m.group(1).replace(",", ""))
+    return None
+
+
+def _derive_surveyed_area_from_species(species_map: Dict) -> Optional[float]:
+    estimates: List[float] = []
+    for sp in (species_map or {}).values():
+        if not isinstance(sp, dict):
+            continue
+        abundance = safe_float(sp.get("abundance_estimate"))
+        density = safe_float(sp.get("density_per_km2"))
+        if (
+            pd.notna(abundance)
+            and pd.notna(density)
+            and abundance is not None
+            and density is not None
+            and abundance > 0
+            and density > 0
+        ):
+            estimates.append(float(abundance) / float(density))
+    if not estimates:
+        return None
+    return float(np.median(estimates))
+
+
+def get_wmu_area_summary(raw: Dict) -> Dict[str, Dict[str, Optional[float]]]:
+    out: Dict[str, Dict[str, Optional[float]]] = {}
+    for wmu_id, wmu_data in (raw.get("wmus", {}) or {}).items():
+        survey = (wmu_data.get("survey") or {})
+        area_km2 = safe_float(wmu_data.get("area_km2"))
+        area_surveyed_km2 = safe_float(survey.get("area_surveyed_km2"))
+        surveyed_pct = (
+            (area_surveyed_km2 / area_km2) * 100
+            if pd.notna(area_km2) and area_km2 and area_km2 > 0 and pd.notna(area_surveyed_km2)
+            else np.nan
+        )
+        out[str(wmu_id)] = {
+            "area_km2": area_km2,
+            "area_surveyed_km2": area_surveyed_km2,
+            "surveyed_pct": surveyed_pct,
+        }
+    return out
+
+
 def normalize_series(s: pd.Series, higher_is_better: bool = True) -> pd.Series:
     s = pd.to_numeric(s, errors="coerce")
     valid = s.dropna()
@@ -102,8 +280,48 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
         survey = wmu_data.get("survey", {})
         terrain = wmu_data.get("terrain", {})
         species_map = wmu_data.get("species", {})
+        background_summary = wmu_data.get("background_summary")
+        area_km2_value = safe_float(wmu_data.get("area_km2"))
+        if area_km2_value is None:
+            area_km2_value = _derive_wmu_area_from_background(background_summary)
+        area_surveyed_value = safe_float(survey.get("area_surveyed_km2"))
+        if area_surveyed_value is None:
+            area_surveyed_value = _derive_surveyed_area_from_background(background_summary)
+        if area_surveyed_value is None:
+            area_surveyed_value = _derive_surveyed_area_from_species(species_map)
 
         for species_name, sp in species_map.items():
+            draw_required_summary, draw_sex_summary, draw_complexity_summary = _derive_draw_fields_from_summary(
+                sp
+            )
+            draw_obj = sp.get("draw") if isinstance(sp.get("draw"), dict) else {}
+            draw_required_raw = _first_non_empty(
+                draw_required_summary,
+                sp.get("draw_required"),
+                sp.get("requires_draw"),
+                sp.get("draw_needed"),
+                sp.get("is_draw"),
+                draw_obj.get("required"),
+                draw_obj.get("needed"),
+                draw_obj.get("is_required"),
+            )
+            draw_sex_raw = _first_non_empty(
+                draw_sex_summary,
+                sp.get("draw_sex"),
+                sp.get("sex_for_draw"),
+                sp.get("draw_gender"),
+                draw_obj.get("sex"),
+                draw_obj.get("gender"),
+            )
+            draw_complexity_raw = _first_non_empty(
+                draw_complexity_summary,
+                sp.get("draw_complexity"),
+                sp.get("draw_difficulty"),
+                sp.get("draw_level"),
+                draw_obj.get("complexity"),
+                draw_obj.get("difficulty"),
+                draw_obj.get("level"),
+            )
             rows.append(
                 {
                     "wmu_id": str(wmu_id),
@@ -111,11 +329,11 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
                     "species_label": prettify_species_name(species_name),
                     "year": wmu_data.get("year"),
                     "source_pdf": wmu_data.get("source_pdf"),
-                    "area_km2": safe_float(wmu_data.get("area_km2")),
+                    "area_km2": area_km2_value,
                     "survey_method": survey.get("method"),
                     "survey_effort_km": safe_float(survey.get("effort_km")),
                     "coverage_percent": safe_float(survey.get("coverage_percent")),
-                    "area_surveyed_km2": safe_float(survey.get("area_surveyed_km2")),
+                    "area_surveyed_km2": area_surveyed_value,
                     "terrain_description": terrain.get("description"),
                     "mean_average_elevation_m": safe_float(terrain.get("mean_average_elevation_m")),
                     "hydro_water_percent": safe_float(terrain.get("hydro_water_percent")),
@@ -137,6 +355,11 @@ def build_species_records(raw: Dict) -> pd.DataFrame:
                     "trend_direction": sp.get("trend_direction"),
                     "trend_percent": safe_float(sp.get("trend_percent")),
                     "trend_reason": sp.get("trend_reason"),
+                    "draw_required": _normalize_draw_required(draw_required_raw),
+                    "draw_sex": None if draw_sex_raw is None else str(draw_sex_raw),
+                    "draw_complexity": None
+                    if draw_complexity_raw is None
+                    else str(draw_complexity_raw),
                     "derived_effort_km_per_expected_animal": safe_float(
                         sp.get("derived_effort_km_per_expected_animal")
                     ),
@@ -272,117 +495,6 @@ def compute_scores(df: pd.DataFrame) -> pd.DataFrame:
         out["global_success_score"] - out["global_effort_score"]).round(1)
 
     return out
-
-
-def get_wmu_summary(df: pd.DataFrame) -> pd.DataFrame:
-    agg = (
-        df.groupby("wmu_id", as_index=False)
-        .agg(
-            overall_success=("global_success_score", "mean"),
-            overall_effort=("global_effort_score", "mean"),
-            avg_density=("density_proxy_per_km2", "mean"),
-            avg_effort_km=("effort_proxy_km", "mean"),
-            total_observed=("observed_count", "sum"),
-            avg_abundance=("abundance_estimate", "mean"),
-            n_species=("species", "nunique"),
-        )
-        .sort_values(["overall_success", "overall_effort"], ascending=[False, True])
-    )
-    return agg
-
-
-def build_parallel_species_table(df: pd.DataFrame, metric: str) -> pd.DataFrame:
-    pivot = df.pivot_table(
-        index="wmu_id", columns="species_label", values=metric, aggfunc="mean")
-    pivot = pivot.reset_index()
-    return pivot
-
-
-def _parcoords_dim_to_dict(dim) -> Dict:
-    if hasattr(dim, "to_plotly_json"):
-        return dim.to_plotly_json()
-    return dict(dim)
-
-
-def parallel_coordinates_with_wmu_axis(
-    pvt: pd.DataFrame, metric_cols: List[str], title: str
-) -> go.Figure:
-    """Parallel coordinates with a left WMU axis (readable ticks) and room for labels."""
-    plot_df = pvt.reset_index(drop=True).copy()
-    n = len(plot_df)
-    plot_df["_par_wmu_idx"] = np.arange(n, dtype=float)
-    wmu_labels = plot_df["wmu_id"].astype(str).tolist()
-
-    color_series = plot_df[metric_cols].mean(axis=1, skipna=True)
-    dim_cols = ["_par_wmu_idx"] + metric_cols
-    labels = {"_par_wmu_idx": "WMU", **{c: c for c in metric_cols}}
-
-    fig = px.parallel_coordinates(
-        plot_df,
-        dimensions=dim_cols,
-        color=color_series,
-        title=title,
-        labels=labels,
-    )
-
-    max_ticks = 32
-    if n <= max_ticks:
-        tickvals = list(range(n))
-        ticktext = wmu_labels
-    else:
-        step = max(1, (n + max_ticks - 1) // max_ticks)
-        tickvals = list(range(0, n, step))
-        if tickvals[-1] != n - 1:
-            tickvals.append(n - 1)
-        ticktext = [wmu_labels[i] for i in tickvals]
-
-    dims = fig.data[0].dimensions
-    first = _parcoords_dim_to_dict(dims[0])
-    first.update(
-        {
-            "label": "WMU",
-            "tickvals": tickvals,
-            "ticktext": ticktext,
-            "range": [-0.5, float(n) - 0.5] if n > 1 else [-0.5, 0.5],
-        }
-    )
-    rest = [_parcoords_dim_to_dict(dims[i]) for i in range(1, len(dims))]
-    fig.update_traces(dimensions=[first] + rest)
-
-    fig.update_traces(
-        # Keep lines dark, but avoid bright tones that create a halo-like effect.
-        line=dict(
-            colorscale=[
-                [0.0, "#1f1f1f"],
-                [0.5, "#2a2a2a"],
-                [1.0, "#353535"],
-            ],
-            cmin=float(color_series.min()
-                       ) if color_series.notna().any() else 0.0,
-            cmax=float(color_series.max()
-                       ) if color_series.notna().any() else 1.0,
-            showscale=False,
-        ),
-        # Use black text for all axis labels/ticks (regular weight).
-        labelfont=dict(size=14, color="#000000"),
-        tickfont=dict(size=12, color="#000000"),
-    )
-    fig.update_layout(
-        margin=dict(l=150, r=100, t=88, b=88, pad=6),
-        font=dict(size=11),
-        height=max(480, 340 + 14 * len(dim_cols)),
-    )
-    return fig
-
-
-def metric_card(label: str, value, help_text: Optional[str] = None, fmt: str = "{:.2f}"):
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        display = "N/A"
-    elif isinstance(value, (float, np.floating, int, np.integer)):
-        display = fmt.format(value)
-    else:
-        display = str(value)
-    st.metric(label, display, help=help_text)
 
 
 def format_detail_value(value) -> str:
@@ -621,47 +733,14 @@ if not DATA_PATH.exists():
 
 raw_data = load_json(DATA_PATH)
 df = compute_scores(build_species_records(raw_data))
-wmu_summary = get_wmu_summary(df)
-all_wmus = sorted(df["wmu_id"].unique(), key=lambda x: int(x))
-
-st.markdown("### View Mode")
-view_mode = st.radio(
-    "View mode",
-    ["Basic", "Expert"],
-    index=0,
-    horizontal=True,
+wmu_area_summary = get_wmu_area_summary(raw_data)
+st.subheader("Best 5 WMUs by species")
+st.caption(
+    "Ranking is based on highest success chance and lower effort. "
+    "Green = success chance, Red = effort."
 )
-
-if view_mode == "Expert":
-    controls_col1, controls_col2, controls_col3 = st.columns([1.1, 1.6, 1.3])
-    with controls_col1:
-        selected_wmu = st.selectbox("Select WMU", all_wmus, index=all_wmus.index(
-            "306") if "306" in all_wmus else 0)
-    with controls_col2:
-        sort_metric = st.selectbox(
-            "Sort species ranking by",
-            [
-                "global_success_score",
-                "global_effort_score",
-                "density_proxy_per_km2",
-                "abundance_estimate",
-                "observed_count",
-                "effort_proxy_km",
-            ],
-            index=0,
-        )
-    with controls_col3:
-        show_all_parallel = st.checkbox(
-            "Use all WMUs in parallel-coordinates charts", value=True)
-
-if view_mode == "Basic":
-    st.subheader("Best 5 WMUs by species")
-    st.caption(
-        "Ranking is based on highest success chance and lower effort. "
-        "Green = success chance, Red = effort."
-    )
-    st.markdown(
-        """
+st.markdown(
+    """
 <style>
 .wll-basic-msg {
   border-radius: 10px;
@@ -702,10 +781,10 @@ if view_mode == "Basic":
   </p>
 </div>
 """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
 <style>
 .wll-basic-card {
   border: 1px solid rgba(49, 51, 63, 0.15);
@@ -746,6 +825,26 @@ if view_mode == "Basic":
   color: rgba(49, 51, 63, 0.78);
   margin-bottom: 0.12rem;
 }
+.wll-basic-draw-text {
+  margin: 0.35rem 0 0.28rem;
+  font-size: 0.76rem;
+  color: rgba(49, 51, 63, 0.88);
+}
+.wll-basic-draw-item {
+  margin-top: 0.12rem;
+}
+.wll-basic-card-footer {
+  margin-top: 0.38rem;
+  padding-top: 0.32rem;
+  border-top: 1px dashed rgba(49, 51, 63, 0.22);
+  font-size: 0.76rem;
+  color: rgba(49, 51, 63, 0.88);
+}
+.wll-basic-card-footer span {
+  display: inline-block;
+  margin-right: 0.62rem;
+  margin-top: 0.08rem;
+}
 .wll-basic-track {
   width: 100%;
   height: 24px;
@@ -774,476 +873,118 @@ if view_mode == "Basic":
 }
 </style>
 """,
-        unsafe_allow_html=True,
-    )
+    unsafe_allow_html=True,
+)
 
-    species_labels = sorted(df["species_label"].dropna().unique().tolist())
-    show_all_species = st.checkbox(
-        "Show All Species",
-        value=False,
-    )
-    selected_species_basic = st.selectbox(
-        "Species",
-        species_labels,
-        index=0,
-        disabled=show_all_species,
-    )
-    species_to_render = species_labels if show_all_species else [
-        selected_species_basic]
-    for species_label in species_to_render:
-        sp_rank = (
-            df[df["species_label"] == species_label]
-            .sort_values(
-                ["global_success_score", "global_effort_score"],
-                ascending=[False, True],
-            )
-            .head(5)
-            .copy()
+species_labels = sorted(df["species_label"].dropna().unique().tolist())
+show_all_species = st.checkbox(
+    "Show All Species",
+    value=False,
+)
+selected_species_basic = st.selectbox(
+    "Species",
+    species_labels,
+    index=0,
+    disabled=show_all_species,
+)
+species_to_render = species_labels if show_all_species else [selected_species_basic]
+for species_label in species_to_render:
+    sp_rank = (
+        df[df["species_label"] == species_label]
+        .sort_values(
+            ["global_success_score", "global_effort_score"],
+            ascending=[False, True],
         )
-
-        if sp_rank.empty:
-            continue
-
-        sp_rank = sp_rank.reset_index(drop=True)
-        container = st.container() if not show_all_species else st.expander(
-            f"{species_label} - Top 5 WMUs", expanded=False
-        )
-        with container:
-            if not show_all_species:
-                st.markdown(f"**{species_label} - Top 5 WMUs**")
-            for _, row in sp_rank.iterrows():
-                success_pct = float(
-                    np.clip(row["global_success_score"], 0, 100))
-                effort_pct = float(np.clip(row["global_effort_score"], 0, 100))
-                rank_pos = int(row.name) + 1
-                filled_stars = max(1, 6 - rank_pos)
-                empty_stars = 5 - filled_stars
-                wmu_label = _html_escape(f"WMU-{row['wmu_id']}")
-                stars_html = (
-                    '<span class="wll-basic-star wll-basic-star--filled">★</span>' * filled_stars
-                    + '<span class="wll-basic-star wll-basic-star--empty">★</span>' * empty_stars
-                )
-                st.markdown(
-                    f"""
-<div class="wll-basic-card">
-  <div class="wll-basic-row">
-    <div class="wll-basic-row-title">
-      <span>{wmu_label}</span>
-      <span class="wll-basic-stars">{stars_html}</span>
-    </div>
-    <div class="wll-basic-bar-label">Success chance</div>
-    <div class="wll-basic-track">
-      <div class="wll-basic-fill wll-basic-success" style="width:{success_pct:.1f}%;">{success_pct:.1f}%</div>
-    </div>
-    <div class="wll-basic-bar-label" style="margin-top:0.32rem;">Effort</div>
-    <div class="wll-basic-track">
-      <div class="wll-basic-fill wll-basic-effort" style="width:{effort_pct:.1f}%;">{effort_pct:.1f}%</div>
-    </div>
-  </div>
-</div>
-""",
-                    unsafe_allow_html=True,
-                )
-
-    st.stop()
-
-selected_df = df[df["wmu_id"] == selected_wmu].copy(
-).sort_values(sort_metric, ascending=False)
-selected_meta = raw_data["wmus"][selected_wmu]
-
-# -----------------------------
-# WMU Header
-# -----------------------------
-st.subheader(f"WMU {selected_wmu} overview")
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
-    metric_card("Species in WMU",
-                selected_df["species"].nunique(), fmt="{:.0f}")
-with col2:
-    metric_card("Avg success score",
-                selected_df["global_success_score"].mean())
-with col3:
-    metric_card("Avg effort score", selected_df["global_effort_score"].mean())
-with col4:
-    metric_card("Survey effort (km)", safe_float(
-        selected_meta.get("survey", {}).get("effort_km")))
-with col5:
-    metric_card("WMU area (km²)", safe_float(selected_meta.get("area_km2")))
-
-st.markdown("**Terrain summary**")
-st.write(selected_meta.get("terrain", {}).get("description", "N/A"))
-
-if selected_meta.get("background_summary"):
-    with st.expander("Background summary"):
-        st.write(selected_meta.get("background_summary"))
-
-# -----------------------------
-# Cross-species overview for selected WMU
-# -----------------------------
-st.markdown("## Species comparison inside selected WMU")
-overview_cols = [
-    "species_label",
-    "observed_count",
-    "density_proxy_per_km2",
-    "abundance_estimate",
-    "effort_proxy_km",
-    "global_success_score",
-    "global_effort_score",
-    "effort_difficulty",
-]
-
-st.dataframe(
-    selected_df[overview_cols].rename(
-        columns={
-            "species_label": "Species",
-            "observed_count": "Observed",
-            "density_proxy_per_km2": "Animals / km²",
-            "abundance_estimate": "Abundance",
-            "effort_proxy_km": "Avg hunting walk (km)",
-            "global_success_score": "Success score",
-            "global_effort_score": "Effort score",
-            "effort_difficulty": "Effort level",
-        }
-    ),
-    width="stretch",
-)
-
-chart_col1, chart_col2 = st.columns(2)
-with chart_col1:
-    fig = px.bar(
-        selected_df,
-        x="species_label",
-        y="global_success_score",
-        color="global_success_score",
-        title=f"WMU {selected_wmu} - Global success score by species",
-        labels={"species_label": "Species",
-                "global_success_score": "Success score"},
+        .head(5)
+        .copy()
     )
-    st.plotly_chart(fig, width="stretch")
 
-with chart_col2:
-    fig = px.bar(
-        selected_df,
-        x="species_label",
-        y="global_effort_score",
-        color="global_effort_score",
-        title=f"WMU {selected_wmu} - Effort score by species",
-        labels={"species_label": "Species",
-                "global_effort_score": "Effort score"},
-    )
-    st.plotly_chart(fig, width="stretch")
-
-chart_col3, chart_col4 = st.columns(2)
-with chart_col3:
-    fig = px.scatter(
-        selected_df,
-        x="effort_proxy_km",
-        y="global_success_score",
-        size="observed_count",
-        color="species_label",
-        hover_data=["density_proxy_per_km2", "abundance_estimate"],
-        title=f"WMU {selected_wmu} - Success vs average hunting walk",
-        labels={
-            "effort_proxy_km": "Average hunting walk (km)",
-            "global_success_score": "Global success score",
-        },
-    )
-    st.plotly_chart(fig, width="stretch")
-
-with chart_col4:
-    fig = px.bar(
-        selected_df,
-        x="species_label",
-        y="density_proxy_per_km2",
-        color="species_label",
-        title=f"WMU {selected_wmu} - Animals per km²",
-        labels={"species_label": "Species",
-                "density_proxy_per_km2": "Animals / km²"},
-    )
-    st.plotly_chart(fig, width="stretch")
-
-# -----------------------------
-# Per-species tabs
-# -----------------------------
-st.markdown("## Species Details")
-if selected_df.empty:
-    st.warning("No species data available for this WMU.")
-else:
-    tabs = st.tabs(selected_df["species_label"].tolist())
-
-    for tab, (_, row) in zip(tabs, selected_df.iterrows()):
-        with tab:
-            st.subheader(row["species_label"])
-
-            m1, m2, m3, m4, m5, m6 = st.columns(6)
-            with m1:
-                metric_card("Observed count",
-                            row["observed_count"], fmt="{:.0f}")
-            with m2:
-                metric_card("Animals / km²", row["density_proxy_per_km2"])
-            with m3:
-                metric_card(
-                    "Abundance", row["abundance_estimate"], fmt="{:.0f}")
-            with m4:
-                metric_card("Avg hunting walk (km)", row["effort_proxy_km"])
-            with m5:
-                metric_card("Success score", row["global_success_score"])
-            with m6:
-                metric_card("Effort score", row["global_effort_score"])
-
-            d1, d2 = st.columns([1, 1])
-            with d1:
-                details = pd.DataFrame(
-                    {
-                        "Metric": [
-                            "Average group size",
-                            "Group size min",
-                            "Group size max",
-                            "Male / 100 female",
-                            "Juvenile / 100 female",
-                            "Effort level",
-                            "Trend direction",
-                            "Trend percent",
-                            "Survey effort (km)",
-                            "Area surveyed (km²)",
-                        ],
-                        "Value": [
-                            format_detail_value(row["average_group_size"]),
-                            format_detail_value(row["group_size_min"]),
-                            format_detail_value(row["group_size_max"]),
-                            format_detail_value(row["male_per_100_female"]),
-                            format_detail_value(
-                                row["juvenile_per_100_female"]),
-                            format_detail_value(row.get("effort_difficulty")),
-                            format_detail_value(row["trend_direction"]),
-                            format_detail_value(row["trend_percent"]),
-                            format_detail_value(row["survey_effort_km"]),
-                            format_detail_value(row["area_surveyed_km2"]),
-                        ],
-                    }
-                )
-                st.dataframe(details, width="stretch")
-
-            with d2:
-                comp = pd.DataFrame(
-                    {
-                        "component": [
-                            "Density",
-                            "Abundance",
-                            "Observed",
-                            "Male ratio",
-                            "Juvenile ratio",
-                            "Effort advantage",
-                        ],
-                        "normalized_value": [
-                            row.get("density_norm"),
-                            row.get("abundance_norm"),
-                            row.get("observed_norm"),
-                            row.get("sex_ratio_norm"),
-                            row.get("juvenile_ratio_norm"),
-                            row.get("effort_norm_red"),
-                        ],
-                    }
-                )
-                fig = px.bar(
-                    comp,
-                    x="component",
-                    y="normalized_value",
-                    color="component",
-                    title=f"{row['species_label']} score components",
-                    labels={
-                        "normalized_value": "Normalized contribution (0-1)"},
-                )
-                st.plotly_chart(fig, width="stretch")
-
-            c1, c2 = st.columns(2)
-            with c1:
-                single_df = pd.DataFrame(
-                    {
-                        "type": ["Success", "Effort"],
-                        "score": [row["global_success_score"], row["global_effort_score"]],
-                    }
-                )
-                fig = px.bar(
-                    single_df,
-                    x="type",
-                    y="score",
-                    color="type",
-                    title=f"{row['species_label']} - success vs effort",
-                )
-                st.plotly_chart(fig, width="stretch")
-
-            with c2:
-                radar_values = [
-                    row.get("density_norm", 0) or 0,
-                    row.get("abundance_norm", 0) or 0,
-                    row.get("observed_norm", 0) or 0,
-                    row.get("sex_ratio_norm", 0) or 0,
-                    row.get("effort_norm_red", 0) or 0,
-                ]
-                radar_labels = ["Density", "Abundance",
-                                "Observed", "Male ratio", "Effort Advantage"]
-                radar_values += radar_values[:1]
-                radar_labels += radar_labels[:1]
-                fig = go.Figure()
-                fig.add_trace(
-                    go.Scatterpolar(r=radar_values, theta=radar_labels,
-                                    fill="toself", name=row["species_label"])
-                )
-                fig.update_layout(
-                    polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-                    title=f"{row['species_label']} profile",
-                    showlegend=False,
-                )
-                st.plotly_chart(fig, width="stretch")
-
-            if pd.notna(row.get("trend_summary")) or pd.notna(row.get("trend_reason")):
-                with st.expander("Trend notes"):
-                    if pd.notna(row.get("trend_summary")):
-                        st.write(f"**Summary:** {row['trend_summary']}")
-                    if pd.notna(row.get("trend_reason")):
-                        st.write(f"**Reason / note:** {row['trend_reason']}")
-
-# -----------------------------
-# All-WMU ranking view
-# -----------------------------
-st.markdown("## WMU ranking overview")
-rank_fig = px.scatter(
-    wmu_summary,
-    x="overall_effort",
-    y="overall_success",
-    size="total_observed",
-    color="n_species",
-    hover_name="wmu_id",
-    title="WMU success vs effort overview",
-    labels={
-        "overall_effort": "Overall effort score",
-        "overall_success": "Overall success score",
-        "n_species": "Species count",
-    },
-)
-st.plotly_chart(rank_fig, width="stretch")
-
-st.dataframe(
-    wmu_summary.rename(
-        columns={
-            "wmu_id": "WMU",
-            "overall_success": "Overall success",
-            "overall_effort": "Overall effort",
-            "avg_density": "Avg animals / km²",
-            "avg_effort_km": "Avg hunting walk (km)",
-            "total_observed": "Total observed",
-            "avg_abundance": "Avg abundance",
-            "n_species": "Species count",
-        }
-    ),
-    width="stretch",
-)
-
-# -----------------------------
-# Parallel coordinates section
-# -----------------------------
-st.markdown("## Global WMUs Overview")
-st.write(
-    "Each chart uses species as axes. Because parallel coordinates work best with one metric family at a time, the app shows one chart per measurable variable."
-)
-
-parallel_df = df.copy() if show_all_parallel else selected_df.copy()
-
-parallel_configs = [
-    ("global_success_score", "Global success score by species axes"),
-    ("global_effort_score", "Global effort score by species axes"),
-    ("density_proxy_per_km2", "Animals per km² by species axes"),
-    ("effort_proxy_km", "Average hunting walk (km) by species axes"),
-    ("abundance_estimate", "Abundance estimate by species axes"),
-]
-
-for metric, title in parallel_configs:
-    pvt = build_parallel_species_table(parallel_df, metric)
-    metric_cols = [c for c in pvt.columns if c != "wmu_id"]
-    if len(metric_cols) < 2:
+    if sp_rank.empty:
         continue
 
-    fig = parallel_coordinates_with_wmu_axis(pvt, metric_cols, title)
-    st.plotly_chart(fig, width="stretch")
-
-# -----------------------------
-# Composite green vs red stacked view
-# -----------------------------
-st.markdown("## Global success vs effort stacked view")
-stacked = wmu_summary.copy()
-stacked["success_green"] = stacked["overall_success"]
-stacked["effort_red"] = stacked["overall_effort"]
-stacked = stacked.sort_values("overall_success", ascending=False)
-
-fig = go.Figure()
-fig.add_trace(
-    go.Bar(
-        x=stacked["wmu_id"],
-        y=stacked["success_green"],
-        name="Success",
-        marker_color="green",
+    sp_rank = sp_rank.reset_index(drop=True)
+    container = st.container() if not show_all_species else st.expander(
+        f"{species_label} - Top 5 WMUs", expanded=False
     )
-)
-fig.add_trace(
-    go.Bar(
-        x=stacked["wmu_id"],
-        y=stacked["effort_red"],
-        name="Effort",
-        marker_color="red",
-    )
-)
-fig.update_layout(
-    barmode="stack",
-    title="Stacked success (green) and effort (red) by WMU",
-    xaxis_title="WMU",
-    yaxis_title="Score",
-)
-st.plotly_chart(fig, width="stretch")
+    with container:
+        if not show_all_species:
+            st.markdown(f"**{species_label} - Top 5 WMUs**")
+        for _, row in sp_rank.iterrows():
+            success_pct = float(np.clip(row["global_success_score"], 0, 100))
+            effort_pct = float(np.clip(row["global_effort_score"], 0, 100))
+            rank_pos = int(row.name) + 1
+            filled_stars = max(1, 6 - rank_pos)
+            empty_stars = 5 - filled_stars
+            wmu_label = _html_escape(f"WMU-{row['wmu_id']}")
+            stars_html = (
+                '<span class="wll-basic-star wll-basic-star--filled">★</span>' * filled_stars
+                + '<span class="wll-basic-star wll-basic-star--empty">★</span>' * empty_stars
+            )
+            wmu_area = wmu_area_summary.get(str(row["wmu_id"]), {})
+            total_area = safe_float(wmu_area.get("area_km2"))
+            area_surveyed = safe_float(wmu_area.get("area_surveyed_km2"))
+            surveyed_pct = safe_float(wmu_area.get("surveyed_pct"))
+            total_animals = safe_float(row.get("abundance_estimate"))
+            wmu_raw = (raw_data.get("wmus") or {}).get(str(row["wmu_id"]), {})
+            species_raw = ((wmu_raw.get("species") or {}) if isinstance(wmu_raw, dict) else {}).get(
+                row["species"], {}
+            )
+            draw_entries = _collect_species_draw_entries(species_raw if isinstance(species_raw, dict) else {})
 
-# -----------------------------
-# Plain-language score guide
-# -----------------------------
-st.markdown("## What these scores mean (plain English)")
-st.markdown(
-    """
-**Success score (green):** "How likely you are to find animals in this WMU/species."
+            if draw_entries:
+                draw_lines = []
+                for draw_entry in draw_entries:
+                    draw_lines.append(
+                        '<div class="wll-basic-draw-item">'
+                        f'<strong>Quote:</strong> {_html_escape(draw_entry["quote"])} | '
+                        f'<strong>Num points:</strong> {_html_escape(draw_entry["num_points"])} | '
+                        f'<strong>Guaranteed points:</strong> {_html_escape(draw_entry["guaranteed_points"])} | '
+                        f'<strong>Chance at min points %:</strong> {_html_escape(draw_entry["chance_at_min_points_percent"])} | '
+                        f'<strong>Difficulty:</strong> {_html_escape(draw_entry["difficulty"])}'
+                        "</div>"
+                    )
+                draw_text_html = (
+                    '<div class="wll-basic-draw-text">'
+                    + "".join(draw_lines)
+                    + "</div>"
+                )
+            else:
+                draw_text_html = (
+                    '<div class="wll-basic-draw-text">'
+                    "<strong>Draw information:</strong> N/A"
+                    "</div>"
+                )
 
-- Higher score = better odds.
-- Built from animal data, not from how hard the walk is.
-- Main ingredients:
-  - **Density (45%)**: more animals per km² helps the most.
-  - **Abundance (25%)**: total number of animals helps.
-  - **Observed count (20%)**: how many were actually seen helps.
-  - **Male ratio (5%)** and **juvenile ratio (5%)**: small adjustments.
-- Simple rule: **higher success score means better chances**.
-
-**Effort score (red):** "How hard it may be to get an opportunity."
-
-- Higher score = more work/harder hunt.
-- Built from 3 pressure signals:
-  - **Hike component (55%)**: your expected walk distance per animal.
-  - **Density pressure (30%)**: lower animal density means more searching.
-  - **Area pressure (15%)**: bigger area per estimated animal means more ground to cover.
-- This is scaled to a practical **35-100** range.
-- Simple rule: **lower effort score means easier conditions**.
-
-**Quick read:** best targets are usually **high success + low effort**.
-"""
-)
-
-# -----------------------------
-# Footnotes
-# -----------------------------
-with st.expander("Model assumptions and caveats"):
-    st.markdown(
-        """
-- `Avg hunting walk (km)` uses `derived_effort_km_per_expected_animal` when present.
-- If that field is missing, the app falls back to `survey_effort_km / abundance_estimate` when possible.
-- Some species such as elk have missing density in several WMUs. The app uses abundance/area as a fallback only when both values exist.
-- Missing values are handled conservatively in the scoring formula.
-- This dashboard is a visualization layer over survey data and proxy metrics; it is **not** an official hunting success predictor.
-"""
-    )
+            footer_html = (
+                '<div class="wll-basic-card-footer">'
+                f'<span><strong>Area covered:</strong> {_html_escape(format_detail_value(total_area))} km²</span>'
+                f'<span><strong>Total animals:</strong> {_html_escape(format_detail_value(total_animals))}</span>'
+                f'<span><strong>Surveyed area:</strong> {_html_escape(format_detail_value(area_surveyed))} km²</span>'
+                f'<span><strong>Surveyed %:</strong> {_html_escape(format_detail_value(surveyed_pct))}%</span>'
+                "</div>"
+            )
+            st.markdown(
+                f"""
+<div class="wll-basic-card">
+<div class="wll-basic-row">
+<div class="wll-basic-row-title">
+<span>{wmu_label}</span>
+<span class="wll-basic-stars">{stars_html}</span>
+</div>
+<div class="wll-basic-bar-label">Success chance</div>
+<div class="wll-basic-track">
+<div class="wll-basic-fill wll-basic-success" style="width:{success_pct:.1f}%;">{success_pct:.1f}%</div>
+</div>
+<div class="wll-basic-bar-label" style="margin-top:0.32rem;">Effort</div>
+<div class="wll-basic-track">
+<div class="wll-basic-fill wll-basic-effort" style="width:{effort_pct:.1f}%;">{effort_pct:.1f}%</div>
+</div>
+{draw_text_html}
+{footer_html}
+</div>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
 
 st.caption("Alberta WMUs Aerial Survey - 2025. Reference: https://github.com/wildlife-labs/alberta-wmu-survey-dashboard")
