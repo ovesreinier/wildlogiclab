@@ -1,2 +1,4 @@
-pyplot
+matplotlib
 pandas
+streamlit
+plotly
