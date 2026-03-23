@@ -611,22 +611,96 @@ all_wmus = sorted(df["wmu_id"].unique(), key=lambda x: int(x))
 with st.sidebar:
     render_sidebar_brand(LOGO_PATH, APP_SUBTITLE)
 
-    selected_wmu = st.selectbox("Select WMU", all_wmus, index=all_wmus.index(
-        "306") if "306" in all_wmus else 0)
-    sort_metric = st.selectbox(
-        "Sort species ranking by",
-        [
-            "global_success_score",
-            "global_effort_score",
-            "density_proxy_per_km2",
-            "abundance_estimate",
-            "observed_count",
-            "effort_proxy_km",
-        ],
+    view_mode = st.radio(
+        "View mode",
+        ["Basic", "Expert"],
         index=0,
+        help="Basic: quick first view. Expert: full analytics dashboard.",
     )
-    show_all_parallel = st.checkbox(
-        "Use all WMUs in parallel-coordinates charts", value=True)
+
+    if view_mode == "Expert":
+        selected_wmu = st.selectbox("Select WMU", all_wmus, index=all_wmus.index(
+            "306") if "306" in all_wmus else 0)
+        sort_metric = st.selectbox(
+            "Sort species ranking by",
+            [
+                "global_success_score",
+                "global_effort_score",
+                "density_proxy_per_km2",
+                "abundance_estimate",
+                "observed_count",
+                "effort_proxy_km",
+            ],
+            index=0,
+        )
+        show_all_parallel = st.checkbox(
+            "Use all WMUs in parallel-coordinates charts", value=True)
+
+if view_mode == "Basic":
+    st.subheader("Quick view: Best 5 WMUs by species")
+    st.caption(
+        "Ranking is based on highest success chance and lower effort. "
+        "Green = success chance, Red = effort."
+    )
+
+    species_labels = sorted(df["species_label"].dropna().unique().tolist())
+    for species_label in species_labels:
+        sp_rank = (
+            df[df["species_label"] == species_label]
+            .sort_values(
+                ["global_success_score", "global_effort_score"],
+                ascending=[False, True],
+            )
+            .head(5)
+            .copy()
+        )
+
+        if sp_rank.empty:
+            continue
+
+        sp_rank = sp_rank.reset_index(drop=True)
+        sp_rank["rank_label"] = sp_rank.apply(
+            lambda r: f"#{int(r.name) + 1} - WMU {r['wmu_id']}", axis=1
+        )
+        sp_rank = sp_rank.sort_values("global_success_score", ascending=True)
+
+        fig = go.Figure()
+        fig.add_trace(
+            go.Bar(
+                y=sp_rank["rank_label"],
+                x=sp_rank["global_success_score"],
+                orientation="h",
+                name="Success chance",
+                marker_color="#1f9d55",
+                text=[f"{v:.1f}%" for v in sp_rank["global_success_score"]],
+                textposition="inside",
+            )
+        )
+        fig.add_trace(
+            go.Bar(
+                y=sp_rank["rank_label"],
+                x=sp_rank["global_effort_score"],
+                orientation="h",
+                name="Effort",
+                marker_color="#d64545",
+                text=[f"{v:.1f}%" for v in sp_rank["global_effort_score"]],
+                textposition="inside",
+            )
+        )
+        fig.update_layout(
+            barmode="group",
+            title=f"{species_label} - Top 5 WMUs",
+            xaxis_title="Score (%)",
+            yaxis_title="",
+            xaxis=dict(range=[0, 100]),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02,
+                        xanchor="right", x=1),
+            margin=dict(l=10, r=10, t=56, b=10),
+            height=320,
+        )
+        st.plotly_chart(fig, width="stretch")
+
+    st.stop()
 
 selected_df = df[df["wmu_id"] == selected_wmu].copy(
 ).sort_values(sort_metric, ascending=False)
