@@ -14,10 +14,10 @@ import streamlit as st
 # Configuration
 # -----------------------------
 DATA_PATH = Path("database/alberta_wmu_survey_database_2025_2.json")
-APP_TITLE = "Alberta WMUs Animal Surveys"
-APP_SUBTITLE = "Alberta Public Surveys - 2025"
+APP_TITLE = "Wild Logic Lab"
+APP_SUBTITLE = "Alberta Public Aereal Survey - 2025"
 LOGO_PATH = "docs/assets/logo2-r.png"
-CHANNEL_NAME = "Wild Logic Lab"
+CHANNEL_NAME = ""
 # Set to your channel pages (used by sidebar follow buttons).
 YOUTUBE_URL = "https://www.youtube.com/@WildLogicLab"
 FACEBOOK_URL = "https://www.facebook.com/wildlogic.ca"
@@ -416,17 +416,24 @@ def _logo_mime_and_b64(logo_path: str) -> Optional[Tuple[str, str]]:
     return (mime, b64)
 
 
-def render_app_header(logo_path: str, title: str, subtitle: str) -> None:
-    """Logo and title on one row with vertical alignment and a simple hero treatment."""
+def render_app_header(
+    logo_path: str,
+    title: str,
+    subtitle: str,
+    company_name: str = CHANNEL_NAME,
+) -> None:
+    """Top-centered branding with logo, app title, and company name."""
     parts = _logo_mime_and_b64(logo_path)
     if not parts:
         st.title(title)
+        st.markdown(f"**{company_name}**")
         st.caption(subtitle)
         return
 
     mime, b64 = parts
     title_esc = _html_escape(title)
     sub_esc = _html_escape(subtitle)
+    company_esc = _html_escape(company_name)
 
     st.markdown(
         f"""
@@ -469,6 +476,14 @@ def render_app_header(logo_path: str, title: str, subtitle: str) -> None:
   font-size: 1.02rem;
   line-height: 1.35;
 }}
+.wll-hero__text .wll-hero__company {{
+  margin: 0.32rem 0 0;
+  color: rgba(49, 51, 63, 0.92);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}}
 </style>
 <div class="wll-hero">
   <div class="wll-hero__logo">
@@ -476,6 +491,7 @@ def render_app_header(logo_path: str, title: str, subtitle: str) -> None:
   </div>
   <div class="wll-hero__text">
     <h1>{title_esc}</h1>
+    <div class="wll-hero__company">{company_esc}</div>
     <p>{sub_esc}</p>
   </div>
 </div>
@@ -594,7 +610,7 @@ def render_sidebar_brand(
 
 st.set_page_config(page_title=APP_TITLE, layout="wide",
                    page_icon=LOGO_PATH)
-render_app_header(LOGO_PATH, APP_TITLE, APP_SUBTITLE)
+render_app_header(LOGO_PATH, APP_TITLE, APP_SUBTITLE, CHANNEL_NAME)
 
 
 if not DATA_PATH.exists():
@@ -608,19 +624,20 @@ df = compute_scores(build_species_records(raw_data))
 wmu_summary = get_wmu_summary(df)
 all_wmus = sorted(df["wmu_id"].unique(), key=lambda x: int(x))
 
-with st.sidebar:
-    render_sidebar_brand(LOGO_PATH, APP_SUBTITLE)
+st.markdown("### View Mode")
+view_mode = st.radio(
+    "View mode",
+    ["Basic", "Expert"],
+    index=0,
+    horizontal=True,
+)
 
-    view_mode = st.radio(
-        "View mode",
-        ["Basic", "Expert"],
-        index=0,
-        help="Basic: quick first view. Expert: full analytics dashboard.",
-    )
-
-    if view_mode == "Expert":
+if view_mode == "Expert":
+    controls_col1, controls_col2, controls_col3 = st.columns([1.1, 1.6, 1.3])
+    with controls_col1:
         selected_wmu = st.selectbox("Select WMU", all_wmus, index=all_wmus.index(
             "306") if "306" in all_wmus else 0)
+    with controls_col2:
         sort_metric = st.selectbox(
             "Sort species ranking by",
             [
@@ -633,11 +650,12 @@ with st.sidebar:
             ],
             index=0,
         )
+    with controls_col3:
         show_all_parallel = st.checkbox(
             "Use all WMUs in parallel-coordinates charts", value=True)
 
 if view_mode == "Basic":
-    st.subheader("Quick view: Best 5 WMUs by species")
+    st.subheader("Best 5 WMUs by species")
     st.caption(
         "Ranking is based on highest success chance and lower effort. "
         "Green = success chance, Red = effort."
@@ -699,9 +717,29 @@ if view_mode == "Basic":
   margin: 0.45rem 0 0.65rem;
 }
 .wll-basic-row-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
   font-size: 0.92rem;
   font-weight: 600;
   margin-bottom: 0.3rem;
+}
+.wll-basic-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  letter-spacing: 0.02em;
+}
+.wll-basic-star {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+.wll-basic-star--filled {
+  color: #f6b000;
+}
+.wll-basic-star--empty {
+  color: #c3c8d1;
 }
 .wll-basic-bar-label {
   font-size: 0.75rem;
@@ -741,7 +779,7 @@ if view_mode == "Basic":
 
     species_labels = sorted(df["species_label"].dropna().unique().tolist())
     show_all_species = st.checkbox(
-        "Show all species (can be long on mobile)",
+        "Show All Species",
         value=False,
     )
     selected_species_basic = st.selectbox(
@@ -750,8 +788,8 @@ if view_mode == "Basic":
         index=0,
         disabled=show_all_species,
     )
-    species_to_render = species_labels if show_all_species else [selected_species_basic]
-
+    species_to_render = species_labels if show_all_species else [
+        selected_species_basic]
     for species_label in species_to_render:
         sp_rank = (
             df[df["species_label"] == species_label]
@@ -767,9 +805,6 @@ if view_mode == "Basic":
             continue
 
         sp_rank = sp_rank.reset_index(drop=True)
-        sp_rank["rank_label"] = sp_rank.apply(
-            lambda r: f"#{int(r.name) + 1} - WMU {r['wmu_id']}", axis=1
-        )
         container = st.container() if not show_all_species else st.expander(
             f"{species_label} - Top 5 WMUs", expanded=False
         )
@@ -777,14 +812,25 @@ if view_mode == "Basic":
             if not show_all_species:
                 st.markdown(f"**{species_label} - Top 5 WMUs**")
             for _, row in sp_rank.iterrows():
-                success_pct = float(np.clip(row["global_success_score"], 0, 100))
+                success_pct = float(
+                    np.clip(row["global_success_score"], 0, 100))
                 effort_pct = float(np.clip(row["global_effort_score"], 0, 100))
-                rank_label = _html_escape(str(row["rank_label"]))
+                rank_pos = int(row.name) + 1
+                filled_stars = max(1, 6 - rank_pos)
+                empty_stars = 5 - filled_stars
+                wmu_label = _html_escape(f"WMU-{row['wmu_id']}")
+                stars_html = (
+                    '<span class="wll-basic-star wll-basic-star--filled">★</span>' * filled_stars
+                    + '<span class="wll-basic-star wll-basic-star--empty">★</span>' * empty_stars
+                )
                 st.markdown(
                     f"""
 <div class="wll-basic-card">
   <div class="wll-basic-row">
-    <div class="wll-basic-row-title">{rank_label}</div>
+    <div class="wll-basic-row-title">
+      <span>{wmu_label}</span>
+      <span class="wll-basic-stars">{stars_html}</span>
+    </div>
     <div class="wll-basic-bar-label">Success chance</div>
     <div class="wll-basic-track">
       <div class="wll-basic-fill wll-basic-success" style="width:{success_pct:.1f}%;">{success_pct:.1f}%</div>
