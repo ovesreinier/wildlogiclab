@@ -1,6 +1,10 @@
 import base64
 import json
+import os
 import re
+import sys
+import tempfile
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -14,6 +18,8 @@ import streamlit as st
 # -----------------------------
 DATA_PATH = Path("database/alberta_wmu_survey_database_2025_with_draws_2.json")
 DRAW_SUMMARY_PATH = Path("database/wmu_draw_summary.json")
+VISITOR_COUNT_PATH = Path("database/visitor_count.json")
+SESSION_VISIT_KEY = "_wll_visitor_counted"
 APP_TITLE = "Wild Logic Lab"
 APP_SUBTITLE = "Alberta Public Aereal Survey - 2025"
 LOGO_PATH = "docs/assets/logo2-r.png"
@@ -37,6 +43,69 @@ SUCCESS_WEIGHTS = {
 def load_json(path: Path) -> Dict:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _atomic_write_json(path: Path, data: Dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(
+        prefix=".visitor_",
+        suffix=".json",
+        dir=path.parent,
+        text=True,
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def read_visitor_count(path: Path) -> int:
+    if not path.exists():
+        return 0
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return int(raw.get("visits", 0))
+    except (OSError, json.JSONDecodeError, ValueError, TypeError):
+        return 0
+
+
+def increment_visitor_count(path: Path) -> int:
+    """Increment persisted visit count; safe under light concurrent access."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        for _ in range(20):
+            try:
+                n = read_visitor_count(path) + 1
+                _atomic_write_json(path, {"visits": n})
+                return n
+            except OSError:
+                time.sleep(0.03)
+        return read_visitor_count(path)
+
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    lock_fd = os.open(str(lock_path), os.O_CREAT | os.O_RDWR, 0o644)
+    try:
+        import fcntl
+
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        n = read_visitor_count(path) + 1
+        _atomic_write_json(path, {"visits": n})
+        return n
+    finally:
+        try:
+            import fcntl
+
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        except OSError:
+            pass
+        os.close(lock_fd)
 
 
 def prettify_species_name(name: str) -> str:
@@ -622,6 +691,7 @@ def render_app_header(
     company_name: str = CHANNEL_NAME,
     youtube_url: str = YOUTUBE_URL,
     facebook_url: str = FACEBOOK_URL,
+    visitor_count: int = 0,
 ) -> None:
     """Top-centered branding with logo, app title, and company name."""
     parts = _logo_mime_and_b64(logo_path)
@@ -629,6 +699,7 @@ def render_app_header(
         st.title(title)
         st.markdown(f"**{company_name}**")
         st.caption(subtitle)
+        st.caption(f"Visitors: {int(visitor_count):,}")
         return
 
     mime, b64 = parts
@@ -637,6 +708,7 @@ def render_app_header(
     company_esc = _html_escape(company_name)
     yt_esc = _html_escape(youtube_url)
     fb_esc = _html_escape(facebook_url)
+    count_esc = _html_escape(f"{int(visitor_count):,}")
 
     st.markdown(
         f"""
@@ -705,6 +777,13 @@ def render_app_header(
   background: #1877f2;
   color: #fff !important;
 }}
+.wll-hero__visitors {{
+  margin-top: 0.55rem;
+  font-size: 0.82rem;
+  color: rgba(49, 51, 63, 0.62);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}}
 .wll-hero__text .wll-hero__company {{
   margin: 0.32rem 0 0;
   color: rgba(49, 51, 63, 0.92);
@@ -726,6 +805,7 @@ def render_app_header(
       <a class="wll-hero-btn-yt" href="{yt_esc}" target="_blank" rel="noopener noreferrer">Follow on YouTube</a>
       <a class="wll-hero-btn-fb" href="{fb_esc}" target="_blank" rel="noopener noreferrer">Follow on Facebook</a>
     </div>
+    <div class="wll-hero__visitors">Visitors: {count_esc}</div>
   </div>
 </div>
 """,
@@ -843,6 +923,11 @@ def render_sidebar_brand(
 
 st.set_page_config(page_title=APP_TITLE, layout="wide",
                    page_icon=LOGO_PATH)
+if SESSION_VISIT_KEY not in st.session_state:
+    st.session_state[SESSION_VISIT_KEY] = True
+    _visitor_display_count = increment_visitor_count(VISITOR_COUNT_PATH)
+else:
+    _visitor_display_count = read_visitor_count(VISITOR_COUNT_PATH)
 render_app_header(
     LOGO_PATH,
     APP_TITLE,
@@ -850,6 +935,7 @@ render_app_header(
     CHANNEL_NAME,
     YOUTUBE_URL,
     FACEBOOK_URL,
+    _visitor_display_count,
 )
 
 
